@@ -1,0 +1,86 @@
+/* ★ Mêmes valeurs que dans script.js */
+const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lanltcnlza2d4aHNvamVzY3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODY2OTcsImV4cCI6MjEwMjA2MjY5N30.rBggWuPcL5155_MnrnVG9Gk0BnzA6R89l-4sXeGxvqM";
+/* ★ URL de la fonction déployée (Étape 5 du guide) */
+const EDGE_FUNCTION_URL = "https://mejymryskgxhsojescxf.supabase.co/functions/v1/send-status-email";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const loginView = document.getElementById('login-view');
+const dashView = document.getElementById('dash-view');
+const reqList = document.getElementById('req-list');
+const loginErr = document.getElementById('login-err');
+
+async function adminLogin(){
+  loginErr.textContent = "";
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-pass').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ loginErr.textContent = "Identifiants incorrects."; return; }
+  showDashboard();
+}
+async function adminLogout(){
+  await sb.auth.signOut();
+  dashView.style.display = 'none';
+  loginView.style.display = 'block';
+}
+
+async function showDashboard(){
+  loginView.style.display = 'none';
+  dashView.style.display = 'block';
+  await loadRequests();
+}
+
+async function loadRequests(){
+  const { data, error } = await sb.from('reservations').select('*').order('created_at', { ascending:false });
+  if(error){ reqList.innerHTML = `<p class="empty-state">Erreur de chargement.</p>`; return; }
+  if(!data.length){ reqList.innerHTML = `<p class="empty-state">Aucune demande pour le moment.</p>`; return; }
+
+  reqList.innerHTML = data.map(r => {
+    let captureLink = '';
+    if(r.capture_paiement){
+      const { data: urlData } = sb.storage.from('captures-paiement').getPublicUrl(r.capture_paiement);
+      captureLink = `<p><a href="${urlData.publicUrl}" target="_blank" style="text-decoration:underline">📎 Voir la capture de paiement</a></p>`;
+    }
+    return `
+    <div class="req-card">
+      <div class="req-info">
+        <p class="rname">${r.nom} <span class="req-badge ${r.status}">${r.status.toUpperCase()}</span></p>
+        <p>${r.service_name} — ${r.service_price} (acompte ${r.deposit}€)</p>
+        <p>${r.date || '—'} à ${r.heure || '—'}</p>
+        <p>${r.email} · ${r.telephone || '—'} · ${r.instagram || '—'}</p>
+        ${captureLink}
+      </div>
+      ${r.status === 'pending' ? `
+        <div class="req-actions">
+          <button class="btn-accept" onclick="respond('${r.id}','confirmed')">ACCEPTER</button>
+          <button class="btn-decline" onclick="respond('${r.id}','declined')">REFUSER</button>
+        </div>` : ''}
+    </div>
+  `;
+  }).join('');
+}
+
+async function respond(id, status){
+  const { error } = await sb.from('reservations').update({ status }).eq('id', id);
+  if(error){ alert("Erreur lors de la mise à jour."); return; }
+
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    await fetch(EDGE_FUNCTION_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${session.access_token}` },
+      body: JSON.stringify({ id, status })
+    });
+  }catch(e){
+    console.error("Email non envoyé :", e);
+    alert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé — vérifie la fonction Supabase.");
+  }
+
+  loadRequests();
+}
+
+/* Reste connectée si une session existe déjà */
+sb.auth.getSession().then(({data})=>{
+  if(data.session) showDashboard();
+});
