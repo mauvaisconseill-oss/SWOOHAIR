@@ -55,9 +55,9 @@ Object.keys(CATALOG).forEach(cat=>{
   });
 });
 
-/* ---------- Time slots 10h-18h ---------- */
+/* ---------- Time slots 11h-19h ---------- */
 const heureSel = document.getElementById('heure_rdv');
-for(let h=10; h<=17; h++){
+for(let h=11; h<=18; h++){
   const opt = document.createElement('option');
   opt.value = h+":00"; opt.textContent = h+":00";
   heureSel.appendChild(opt);
@@ -133,26 +133,6 @@ async function submitReservation(){
   statusEl.textContent = "Envoi en cours…";
   statusEl.style.color = "";
 
-  /* ---- Upload de la capture de paiement (si fournie) ---- */
-  let captureUrl = null;
-  const fileInput = document.getElementById('capture');
-  if (fileInput.files.length > 0) {
-    const file = fileInput.files[0];
-    const fileName = `${Date.now()}_${file.name}`;
-    const { data: uploadData, error: uploadError } = await supabaseClient
-      .storage
-      .from('captures-paiement')
-      .upload(fileName, file);
-
-    if (uploadError) {
-      console.error(uploadError);
-      statusEl.textContent = "Erreur lors de l'envoi de la capture de paiement.";
-      statusEl.style.color = "#b23b3b";
-      return;
-    }
-    captureUrl = fileName;
-  }
-
   const { error } = await supabaseClient.from('reservations').insert({
     prestation: current.name,
     service_price: current.price,
@@ -161,8 +141,7 @@ async function submitReservation(){
     date_rdv: date,
     heure_rdv: heure,
     nom, telephone, email,
-    instagram: insta,
-    capture_paiement: captureUrl
+    instagram: insta
   });
 
   if(error){
