@@ -1,6 +1,11 @@
 const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lanltcnlza2d4aHNvamVzY3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODY2OTcsImV4cCI6MjEwMjA2MjY5N30.rBggWuPcL5155_MnrnVG9Gk0BnzA6R89l-4sXeGxvqM";
-const EDGE_FUNCTION_URL = "https://mejymryskgxhsojescxf.supabase.co/functions/v1/resend-email";
+
+/* ★ EmailJS — envoi direct, aucune restriction de destinataire (passe par ton vrai Gmail) */
+emailjs.init("N3e331Qf_9wb8UEtE");
+const EMAILJS_SERVICE_ID = "service_ehfhwi8";
+const EMAILJS_TEMPLATE_CONFIRM = "template_r3jmb3f";
+const EMAILJS_TEMPLATE_REFUSED = "template_4y1bw8a";
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
