@@ -1,6 +1,11 @@
 const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lanltcnlza2d4aHNvamVzY3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODY2OTcsImV4cCI6MjEwMjA2MjY5N30.rBggWuPcL5155_MnrnVG9Gk0BnzA6R89l-4sXeGxvqM";
-const EDGE_FUNCTION_URL = "https://mejymryskgxhsojescxf.supabase.co/functions/v1/resend-email";
+
+/* ★ EmailJS — envoi direct, aucune restriction de destinataire (passe par ton vrai Gmail) */
+emailjs.init("N3e331Qf_9wb8UEtE");
+const EMAILJS_SERVICE_ID = "service_ehfhwi8";
+const EMAILJS_TEMPLATE_CONFIRM = "template_r3jmb3f";
+const EMAILJS_TEMPLATE_REFUSED = "template_4y1bw8a";
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -98,21 +103,20 @@ async function respond(id, status){
   const { error } = await sb.from('reservations').update({ status }).eq('id', id);
   if(error){ alert("Erreur lors de la mise à jour."); return; }
 
+  const reservation = allReservations.find(r => r.id === id);
+  const templateId = status === 'confirmed' ? EMAILJS_TEMPLATE_CONFIRM : EMAILJS_TEMPLATE_REFUSED;
+
   try{
-    const { data:{ session } } = await sb.auth.getSession();
-    const res = await fetch(EDGE_FUNCTION_URL, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${session.access_token}` },
-      body: JSON.stringify({ id, status })
+    await emailjs.send(EMAILJS_SERVICE_ID, templateId, {
+      nom: reservation?.nom || '',
+      email: reservation?.email || '',
+      prestation: reservation?.prestation || '',
+      date_rdv: reservation?.date_rdv || '',
+      heure_rdv: reservation?.heure_rdv || ''
     });
-    if(!res.ok){
-      const detail = await res.text();
-      console.error("Réponse fonction email :", detail);
-      alert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé — vérifie les Logs de la fonction resend-email dans Supabase.");
-    }
   }catch(e){
     console.error("Email non envoyé :", e);
-    alert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé.");
+    alert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé (EmailJS) — vérifie la console.");
   }
 
   await loadRequests();
