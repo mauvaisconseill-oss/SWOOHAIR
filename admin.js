@@ -100,6 +100,9 @@ function renderList(){
 }
 
 async function respond(id, status){
+  const label = status === 'confirmed' ? 'accepter' : 'refuser';
+  if(!confirm(`Confirmer : ${label} cette demande de réservation ?`)) return;
+
   const { error } = await sb.from('reservations').update({ status }).eq('id', id);
   if(error){ alert("Erreur lors de la mise à jour."); return; }
 
