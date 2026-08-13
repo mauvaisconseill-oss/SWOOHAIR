@@ -1,7 +1,7 @@
 /* ★ Mêmes valeurs que dans script.js */
 const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lanltcnlza2d4aHNvamVzY3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODY2OTcsImV4cCI6MjEwMjA2MjY5N30.rBggWuPcL5155_MnrnVG9Gk0BnzA6R89l-4sXeGxvqM";
-/* ★ URL de la fonction déployée (Étape 5 du guide) */
+/* ★ URL de la fonction déployée (à créer — voir message suivant) */
 const EDGE_FUNCTION_URL = "https://mejymryskgxhsojescxf.supabase.co/functions/v1/send-status-email";
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -45,9 +45,9 @@ async function loadRequests(){
     return `
     <div class="req-card">
       <div class="req-info">
-        <p class="rname">${r.nom} <span class="req-badge ${r.status}">${r.status.toUpperCase()}</span></p>
-        <p>${r.service_name} — ${r.service_price} (acompte ${r.deposit}€)</p>
-        <p>${r.date || '—'} à ${r.heure || '—'}</p>
+        <p class="rname">${r.nom} <span class="req-badge ${r.status}">${(r.status||'pending').toUpperCase()}</span></p>
+        <p>${r.prestation || '—'} — ${r.service_price || '—'} (acompte ${r.acompte || '—'})</p>
+        <p>${r.date_rdv || '—'} à ${r.heure_rdv || '—'}</p>
         <p>${r.email} · ${r.telephone || '—'} · ${r.instagram || '—'}</p>
         ${captureLink}
       </div>
