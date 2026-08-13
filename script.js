@@ -188,7 +188,7 @@ async function submitReservation(){
   if(captureFile){
     const fileName = `${Date.now()}_${captureFile.name}`;
     const { error: uploadError } = await supabaseClient.storage
-      .from('captures-palement')
+      .from('captures-paiement')
       .upload(fileName, captureFile);
     if(uploadError){
       console.error(uploadError);
