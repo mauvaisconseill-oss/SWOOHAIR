@@ -17,6 +17,32 @@ const loginErr = document.getElementById('login-err');
 let allReservations = [];
 let currentTab = 'pending';
 
+/* ---------- Popups personnalisées (remplacent confirm/alert) ---------- */
+function customConfirm(message, danger=false){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `<div class="modal-box"><p>${message}</p><div class="modal-actions">
+      <button class="modal-btn-secondary" id="modal-cancel">ANNULER</button>
+      <button class="${danger?'modal-btn-danger':'modal-btn-primary'}" id="modal-ok">CONFIRMER</button>
+    </div></div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#modal-ok').onclick = ()=>{ overlay.remove(); resolve(true); };
+    overlay.querySelector('#modal-cancel').onclick = ()=>{ overlay.remove(); resolve(false); };
+  });
+}
+function customAlert(message){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `<div class="modal-box"><p>${message}</p><div class="modal-actions">
+      <button class="modal-btn-primary" id="modal-ok">OK</button>
+    </div></div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#modal-ok').onclick = ()=>{ overlay.remove(); resolve(); };
+  });
+}
+
 async function adminLogin(){
   loginErr.textContent = "";
   const email = document.getElementById('admin-email').value.trim();
@@ -74,7 +100,7 @@ function renderList(){
   reqList.innerHTML = filtered.map(r => {
     let captureLink = '';
     if(r.capture_paiement){
-      const { data: urlData } = sb.storage.from('captures-paiement').getPublicUrl(r.capture_paiement);
+      const { data: urlData } = sb.storage.from('captures-palement').getPublicUrl(r.capture_paiement);
       captureLink = `<p class="req-row"><a href="${urlData.publicUrl}" target="_blank" style="text-decoration:underline">📎 Voir la capture de paiement</a></p>`;
     }
     return `
@@ -101,10 +127,11 @@ function renderList(){
 
 async function respond(id, status){
   const label = status === 'confirmed' ? 'accepter' : 'refuser';
-  if(!confirm(`Confirmer : ${label} cette demande de réservation ?`)) return;
+  const ok = await customConfirm(`Confirmer : ${label} cette demande de réservation ?`, status !== 'confirmed');
+  if(!ok) return;
 
   const { error } = await sb.from('reservations').update({ status }).eq('id', id);
-  if(error){ alert("Erreur lors de la mise à jour."); return; }
+  if(error){ await customAlert("Erreur lors de la mise à jour."); return; }
 
   const reservation = allReservations.find(r => String(r.id) === String(id));
   const templateId = status === 'confirmed' ? EMAILJS_TEMPLATE_CONFIRM : EMAILJS_TEMPLATE_REFUSED;
@@ -119,16 +146,17 @@ async function respond(id, status){
     });
   }catch(e){
     console.error("Email non envoyé :", e);
-    alert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé (EmailJS) — vérifie la console.");
+    await customAlert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé (EmailJS) — vérifie la console.");
   }
 
   await loadRequests();
 }
 
 async function removeReservation(id){
-  if(!confirm("Supprimer définitivement cette demande ?")) return;
+  const ok = await customConfirm("Supprimer définitivement cette demande ?", true);
+  if(!ok) return;
   const { error } = await sb.from('reservations').delete().eq('id', id);
-  if(error){ alert("Erreur lors de la suppression."); return; }
+  if(error){ await customAlert("Erreur lors de la suppression."); return; }
   await loadRequests();
 }
 
