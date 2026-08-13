@@ -100,7 +100,7 @@ function renderList(){
   reqList.innerHTML = filtered.map(r => {
     let captureLink = '';
     if(r.capture_paiement){
-      const { data: urlData } = sb.storage.from('captures-palement').getPublicUrl(r.capture_paiement);
+      const { data: urlData } = sb.storage.from('captures-paiement').getPublicUrl(r.capture_paiement);
       captureLink = `<p class="req-row"><a href="${urlData.publicUrl}" target="_blank" style="text-decoration:underline">📎 Voir la capture de paiement</a></p>`;
     }
     return `
