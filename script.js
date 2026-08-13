@@ -13,6 +13,20 @@ const supabaseClient = (SUPABASE_URL.includes("TON-PROJET"))
   ? null
   : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* ---------- Popup stylée (remplace alert()) ---------- */
+function customAlert(message){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,15,10,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+    overlay.innerHTML = `<div style="background:#f5f0e7;border-radius:14px;padding:30px 28px;max-width:360px;width:100%;text-align:center;border:1px solid #ddd;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif">
+      <p style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:22px;color:#222;line-height:1.4">${message}</p>
+      <button id="ca-ok" style="padding:11px 24px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:#111;color:#f5f0e7">OK</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#ca-ok').onclick = ()=>{ overlay.remove(); resolve(); };
+  });
+}
+
 /* ---------- Mobile menu ---------- */
 const menuBtn = document.querySelector('.menu-btn');
 const mobileMenu = document.querySelector('.mobile-menu');
@@ -104,7 +118,7 @@ async function refreshHeureAvailability(){
 }
 document.getElementById('date_rdv').addEventListener('change', refreshHeureAvailability);
 function copyRecap(){
-  if(!current){ alert("Choisis d'abord une prestation."); return; }
+  if(!current){ customAlert("Choisis d'abord une prestation."); return; }
   const d = document.getElementById('date_rdv').value ? new Date(document.getElementById('date_rdv').value).toLocaleDateString('fr-FR') : '—';
   const h = document.getElementById('heure_rdv').value || '—';
   const nom = document.getElementById('nom').value || '—';
@@ -119,8 +133,8 @@ Téléphone : ${tel}
 Instagram : ${insta}
 Acompte réglé : ${current.dep}€ (capture jointe en DM)`;
   navigator.clipboard.writeText(txt).then(()=>{
-    alert("Récapitulatif copié — garde-le pour tes archives, ta réservation est déjà prise en compte une fois l'acompte réglé.");
-  }).catch(()=>alert(txt));
+    customAlert("Récapitulatif copié — garde-le pour tes archives, ta réservation est déjà prise en compte une fois l'acompte réglé.");
+  }).catch(()=>customAlert(txt));
 }
 
 /* ---------- Envoi réel de la demande vers Supabase ----------
@@ -130,9 +144,9 @@ Acompte réglé : ${current.dep}€ (capture jointe en DM)`;
    (+ instagram, service_price, note ajoutées par le script SQL fourni) */
 async function submitReservation(){
   const statusEl = document.getElementById('submit-status');
-  if(!current){ alert("Choisis d'abord une prestation dans les rubriques plus haut."); return; }
+  if(!current){ customAlert("Choisis d'abord une prestation dans les rubriques plus haut."); return; }
   if(!supabaseClient){
-    alert("Connexion à la base non configurée — voir SUPABASE_URL / SUPABASE_ANON_KEY en haut de script.js.");
+    customAlert("Connexion à la base non configurée — voir SUPABASE_URL / SUPABASE_ANON_KEY en haut de script.js.");
     return;
   }
   const date = document.getElementById('date_rdv').value;
@@ -238,12 +252,12 @@ function postAvis(){
   const nom = document.getElementById('avis-nom').value.trim();
   const svc = document.getElementById('avis-svc').value.trim() || "Prestation";
   const txt = document.getElementById('avis-txt').value.trim();
-  if(!nom || !noteChoisie || !txt){ alert("Merci d'indiquer ton prénom, une note et un commentaire."); return; }
+  if(!nom || !noteChoisie || !txt){ customAlert("Merci d'indiquer ton prénom, une note et un commentaire."); return; }
   AVIS.unshift({nom, note:noteChoisie, svc, txt});
   renderAvis();
   document.getElementById('avis-nom').value=''; document.getElementById('avis-svc').value=''; document.getElementById('avis-txt').value='';
   noteChoisie=0; rateInput.querySelectorAll('span').forEach(s=>s.classList.remove('on'));
-  alert("Merci pour ton avis 🖤");
+  customAlert("Merci pour ton avis 🖤");
 }
 
 /* ---------- Footer date ---------- */
