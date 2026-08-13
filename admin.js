@@ -75,9 +75,10 @@ function renderList(){
     return `
     <div class="req-card">
       <div class="req-info">
-        <p class="rname">${r.nom || '—'} <span class="req-badge ${r.status||'pending'}">${(r.status||'pending').toUpperCase()}</span></p>
-        <p class="req-row"><b>Prestation :</b> ${r.prestation || '—'} (${fmtEuro(r.service_price)}, acompte ${fmtEuro(r.acompte)})</p>
-        <p class="req-row"><b>Date :</b> ${r.date_rdv || '—'} &nbsp; <b>Heure :</b> ${r.heure_rdv || '—'}</p>
+        <p class="rname">${r.nom || '—'}, ${r.prestation || '—'} <span class="req-badge ${r.status||'pending'}">${(r.status||'pending').toUpperCase()}</span></p>
+        <p class="req-row"><b>Date :</b> ${r.date_rdv || '—'}</p>
+        <p class="req-row"><b>Heure :</b> ${r.heure_rdv || '—'}</p>
+        <p class="req-row"><b>Prix :</b> ${fmtEuro(r.service_price)} &nbsp; <b>Acompte :</b> ${fmtEuro(r.acompte)}</p>
         <p class="req-row"><b>Email :</b> ${r.email || '—'}</p>
         <p class="req-row"><b>Téléphone :</b> ${r.telephone || '—'} &nbsp; <b>Instagram :</b> ${r.instagram || '—'}</p>
         ${captureLink}
