@@ -103,7 +103,7 @@ async function respond(id, status){
   const { error } = await sb.from('reservations').update({ status }).eq('id', id);
   if(error){ alert("Erreur lors de la mise à jour."); return; }
 
-  const reservation = allReservations.find(r => r.id === id);
+  const reservation = allReservations.find(r => String(r.id) === String(id));
   const templateId = status === 'confirmed' ? EMAILJS_TEMPLATE_CONFIRM : EMAILJS_TEMPLATE_REFUSED;
 
   try{
