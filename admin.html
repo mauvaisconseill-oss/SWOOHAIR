@@ -1,55 +1,86 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SWOO HAIR — Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<style>
-  body{background:var(--paper2)}
-  .admin-wrap{max-width:900px;margin:0 auto;padding:40px 5% 80px}
-  .admin-login{max-width:340px;margin:80px auto;background:var(--cream);border:1px solid var(--line);padding:32px;border-radius:12px}
-  .admin-login h1{font-family:"Playfair Display",serif;font-size:22px;margin-bottom:18px}
-  .admin-login input{width:100%;padding:12px;margin-bottom:12px;border:1px solid var(--line);border-radius:6px;font-size:14px}
-  .admin-login button{width:100%;padding:13px;background:var(--ink);color:var(--cream);border:0;border-radius:6px;font-size:13px;letter-spacing:.06em;cursor:pointer}
-  .admin-err{color:#b23b3b;font-size:12.5px;margin-top:8px}
-  .admin-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-  .admin-top h1{font-family:"Playfair Display",serif;font-size:24px}
-  .admin-top button{background:transparent;border:1px solid var(--ink);padding:8px 14px;border-radius:6px;font-size:11.5px;letter-spacing:.06em;cursor:pointer}
-  .req-card{background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
-  .req-info p{font-size:13px;margin:2px 0;color:#333}
-  .req-info .rname{font-family:"Playfair Display",serif;font-size:16px;margin-bottom:6px}
-  .req-badge{display:inline-block;font-size:10px;letter-spacing:.06em;padding:3px 9px;border-radius:999px;margin-left:8px;vertical-align:middle}
-  .req-badge.pending{background:#f0e6c9;color:#6b5a1e}
-  .req-badge.confirmed{background:#d9ecdd;color:#2f6b3f}
-  .req-badge.declined{background:#f5d9d9;color:#8a2f2f}
-  .req-actions{display:flex;gap:8px;align-items:flex-start}
-  .req-actions button{padding:10px 16px;border-radius:6px;font-size:11.5px;letter-spacing:.05em;cursor:pointer;border:1px solid var(--ink)}
-  .btn-accept{background:var(--ink);color:var(--cream)}
-  .btn-decline{background:transparent;color:var(--ink)}
-  .empty-state{text-align:center;color:#888;padding:60px 0;font-size:14px}
-</style>
-</head>
-<body>
+/* ★ Mêmes valeurs que dans script.js */
+const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lanltcnlza2d4aHNvamVzY3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODY2OTcsImV4cCI6MjEwMjA2MjY5N30.rBggWuPcL5155_MnrnVG9Gk0BnzA6R89l-4sXeGxvqM";
+/* ★ URL de la fonction déployée (resend-email, déjà en place) */
+const EDGE_FUNCTION_URL = "https://mejymryskgxhsojescxf.supabase.co/functions/v1/resend-email";
 
-<div id="login-view" class="admin-login">
-  <h1>SWOO HAIR — Admin</h1>
-  <input type="email" id="admin-email" placeholder="ton e-mail">
-  <input type="password" id="admin-pass" placeholder="mot de passe">
-  <button onclick="adminLogin()">SE CONNECTER</button>
-  <p class="admin-err" id="login-err"></p>
-</div>
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-<div id="dash-view" class="admin-wrap" style="display:none">
-  <div class="admin-top">
-    <h1>Demandes de réservation</h1>
-    <button onclick="adminLogout()">SE DÉCONNECTER</button>
-  </div>
-  <div id="req-list"></div>
-</div>
+const loginView = document.getElementById('login-view');
+const dashView = document.getElementById('dash-view');
+const reqList = document.getElementById('req-list');
+const loginErr = document.getElementById('login-err');
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="admin.js"></script>
-</body>
-</html>
+async function adminLogin(){
+  loginErr.textContent = "";
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-pass').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ loginErr.textContent = "Identifiants incorrects."; return; }
+  showDashboard();
+}
+async function adminLogout(){
+  await sb.auth.signOut();
+  dashView.style.display = 'none';
+  loginView.style.display = 'block';
+}
+
+async function showDashboard(){
+  loginView.style.display = 'none';
+  dashView.style.display = 'block';
+  await loadRequests();
+}
+
+async function loadRequests(){
+  const { data, error } = await sb.from('reservations').select('*').order('created_at', { ascending:false });
+  if(error){ reqList.innerHTML = `<p class="empty-state">Erreur de chargement.</p>`; return; }
+  if(!data.length){ reqList.innerHTML = `<p class="empty-state">Aucune demande pour le moment.</p>`; return; }
+
+  reqList.innerHTML = data.map(r => {
+    let captureLink = '';
+    if(r.capture_paiement){
+      const { data: urlData } = sb.storage.from('captures-paiement').getPublicUrl(r.capture_paiement);
+      captureLink = `<p><a href="${urlData.publicUrl}" target="_blank" style="text-decoration:underline">📎 Voir la capture de paiement</a></p>`;
+    }
+    return `
+    <div class="req-card">
+      <div class="req-info">
+        <p class="rname">${r.nom} <span class="req-badge ${r.status}">${(r.status||'pending').toUpperCase()}</span></p>
+        <p>${r.prestation || '—'} — ${r.service_price || '—'} (acompte ${r.acompte || '—'})</p>
+        <p>${r.date_rdv || '—'} à ${r.heure_rdv || '—'}</p>
+        <p>${r.email} · ${r.telephone || '—'} · ${r.instagram || '—'}</p>
+        ${captureLink}
+      </div>
+      ${r.status === 'pending' ? `
+        <div class="req-actions">
+          <button class="btn-accept" onclick="respond('${r.id}','confirmed')">ACCEPTER</button>
+          <button class="btn-decline" onclick="respond('${r.id}','declined')">REFUSER</button>
+        </div>` : ''}
+    </div>
+  `;
+  }).join('');
+}
+
+async function respond(id, status){
+  const { error } = await sb.from('reservations').update({ status }).eq('id', id);
+  if(error){ alert("Erreur lors de la mise à jour."); return; }
+
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    await fetch(EDGE_FUNCTION_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${session.access_token}` },
+      body: JSON.stringify({ id, status })
+    });
+  }catch(e){
+    console.error("Email non envoyé :", e);
+    alert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé — vérifie la fonction Supabase.");
+  }
+
+  loadRequests();
+}
+
+/* Reste connectée si une session existe déjà */
+sb.auth.getSession().then(({data})=>{
+  if(data.session) showDashboard();
+});
