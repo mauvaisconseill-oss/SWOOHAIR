@@ -142,8 +142,16 @@ async function submitReservation(){
   const telephone = document.getElementById('telephone').value.trim();
   const insta = document.getElementById('insta').value.trim();
 
+  const captureFile = document.getElementById('capture').files[0];
+
   if(!nom || !email || !date || !heure){
     statusEl.textContent = "Merci de remplir au minimum : date, heure, nom et e-mail.";
+    statusEl.style.color = "#b23b3b";
+    return;
+  }
+
+  if(!captureFile){
+    statusEl.textContent = "Merci de joindre la capture de ton paiement PayPal avant d'envoyer ta demande.";
     statusEl.style.color = "#b23b3b";
     return;
   }
@@ -163,7 +171,6 @@ async function submitReservation(){
   statusEl.style.color = "";
 
   let capturePath = null;
-  const captureFile = document.getElementById('capture').files[0];
   if(captureFile){
     const fileName = `${Date.now()}_${captureFile.name}`;
     const { error: uploadError } = await supabaseClient.storage
