@@ -85,6 +85,24 @@ function refreshTicket(){
   document.getElementById('t-date').textContent = d ? new Date(d).toLocaleDateString('fr-FR') : 'à choisir';
   document.getElementById('t-heure').textContent = h || 'à choisir';
 }
+
+/* ---------- Griser les créneaux déjà confirmés pour la date choisie ---------- */
+async function refreshHeureAvailability(){
+  const d = document.getElementById('date_rdv').value;
+  Array.from(heureSel.options).forEach(opt=>{ opt.disabled=false; opt.textContent = opt.value; });
+  if(!d || !supabaseClient) return;
+  const { data, error } = await supabaseClient.rpc('get_creneaux_pris');
+  if(error || !data) return;
+  const prisPourCetteDate = data.filter(c => c.date_rdv === d).map(c => c.heure_rdv);
+  Array.from(heureSel.options).forEach(opt=>{
+    if(prisPourCetteDate.includes(opt.value)){
+      opt.disabled = true;
+      opt.textContent = opt.value + ' — déjà pris';
+      if(heureSel.value === opt.value) heureSel.value = '';
+    }
+  });
+}
+document.getElementById('date_rdv').addEventListener('change', refreshHeureAvailability);
 function copyRecap(){
   if(!current){ alert("Choisis d'abord une prestation."); return; }
   const d = document.getElementById('date_rdv').value ? new Date(document.getElementById('date_rdv').value).toLocaleDateString('fr-FR') : '—';
@@ -130,8 +148,35 @@ async function submitReservation(){
     return;
   }
 
+  statusEl.textContent = "Vérification du créneau…";
+  statusEl.style.color = "";
+
+  const { data: conflit } = await supabaseClient.rpc('get_creneaux_pris');
+  if(conflit && conflit.some(c => c.date_rdv === date && c.heure_rdv === heure)){
+    statusEl.textContent = "Ce créneau vient d'être pris par quelqu'un d'autre, merci d'en choisir un autre.";
+    statusEl.style.color = "#b23b3b";
+    refreshHeureAvailability();
+    return;
+  }
+
   statusEl.textContent = "Envoi en cours…";
   statusEl.style.color = "";
+
+  let capturePath = null;
+  const captureFile = document.getElementById('capture').files[0];
+  if(captureFile){
+    const fileName = `${Date.now()}_${captureFile.name}`;
+    const { error: uploadError } = await supabaseClient.storage
+      .from('captures-palement')
+      .upload(fileName, captureFile);
+    if(uploadError){
+      console.error(uploadError);
+      statusEl.textContent = "Erreur lors de l'envoi de la capture, réessaie.";
+      statusEl.style.color = "#b23b3b";
+      return;
+    }
+    capturePath = fileName;
+  }
 
   const { error } = await supabaseClient.from('reservations').insert({
     prestation: current.name,
@@ -141,7 +186,8 @@ async function submitReservation(){
     date_rdv: date,
     heure_rdv: heure,
     nom, telephone, email,
-    instagram: insta
+    instagram: insta,
+    capture_paiement: capturePath
   });
 
   if(error){
