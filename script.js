@@ -425,7 +425,12 @@ async function submitReservation(){
   statusEl.textContent = "Envoi en cours…";
   statusEl.style.color = "";
 
-  const captureName = `${Date.now()}_${captureFile.name}`;
+  function nettoyerNomFichier(name){
+  return name
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // enlève les accents
+    .replace(/[^a-zA-Z0-9.\-_]/g, '_'); // remplace tout le reste (espaces, apostrophes...) par _
+}
+const captureName = `${Date.now()}_${nettoyerNomFichier(captureFile.name)}`;
   const { error: uploadError } = await supabaseClient.storage.from('captures-paiement').upload(captureName, captureFile);
   if(uploadError){
     console.error(uploadError);
@@ -435,7 +440,7 @@ async function submitReservation(){
 
   let photoEtatPath = null;
   if(photoEtatFile){
-    const fname = `etat_${Date.now()}_${photoEtatFile.name}`;
+    const fname = `etat_${Date.now()}_${nettoyerNomFichier(photoEtatFile.name)}`;
     const { error: err2 } = await supabaseClient.storage.from('etat-perruque').upload(fname, photoEtatFile);
     if(!err2) photoEtatPath = fname;
   }
