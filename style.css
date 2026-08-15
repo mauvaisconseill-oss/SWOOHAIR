@@ -293,3 +293,21 @@ footer small{font-size:9px;letter-spacing:.12em;color:#8a8377;display:block;padd
   .footer-logo{width:100%}
   footer small{width:100%}
 }
+/* ---- Titres éditoriaux façon "BIENVENUE" ---- */
+.editorial-title{
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  font-weight:400;
+  font-size:clamp(28px,6vw,44px);
+}
+
+/* ---- Mot en script cursif façon "Policy" ---- */
+.script-accent{
+  font-family:'Parisienne', cursive;
+  font-style:normal;
+  font-size:1.5em;
+  letter-spacing:0;
+  display:inline-block;
+  line-height:1;
+  vertical-align:middle;
+}
