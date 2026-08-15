@@ -159,7 +159,7 @@
           <h3>Au choix — mèches &amp; frange incluses</h3>
           <p class="fprice">70€</p>
           <ul><li>Ponytail Classique</li><li>Bubble Ponytail</li><li>Ponytail à chignons</li></ul>
-          <button onclick="selectService('Formule Ponytail (au choix)','70€',20,'Formule ponytail — mèches et frange incluses')">CHOISIR CETTE FORMULE →</button>
+          <button onclick="selectService({name:'Formule Ponytail (au choix)',price:'70€',dep:20,duree:180,type:'slot'},'Formule ponytail — mèches et frange incluses')">CHOISIR CETTE FORMULE →</button>
         </div>
       </div>
     </div>
@@ -177,14 +177,14 @@
           <h3>Prestation complète</h3>
           <p class="fprice">70€</p>
           <ul><li>Pose de perruque</li><li>Customisation au choix</li><li>Hairstyle au choix</li><li>Nattes collées wig</li></ul>
-          <button onclick="selectService('Formule Pose Perruque','70€',10,'Pose + customisation + hairstyle + nattes collées wig')">CHOISIR CETTE FORMULE →</button>
+          <button onclick="selectService({name:'Formule Pose Perruque',price:'70€',dep:10,duree:180,type:'slot',needPhoto:true},'Pose + customisation + hairstyle + nattes collées wig')">CHOISIR CETTE FORMULE →</button>
         </div>
         <div class="formule-block">
           <p class="ftag">Tissage</p>
           <h3>FlipOver</h3>
           <p class="fprice">50€</p>
           <ul><li>Acompte de 20€ — mêmes conditions d'hygiène capillaire</li></ul>
-          <button onclick="selectService('FlipOver','50€',20,'Tissage flip over')">CHOISIR →</button>
+          <button onclick="selectService({name:'FlipOver',price:'50€',dep:20,duree:180,type:'slot'},'Tissage flip over')">CHOISIR →</button>
         </div>
       </div>
     </div>
@@ -201,27 +201,27 @@
     <div class="cat-list">
       <div class="train-card">
         <div class="thead"><h3>Customisation perruque — 1 jour</h3><span class="tprice">50€ / 70€</span></div>
-        <p>Blanchiment des nœuds, décoloration &amp; teinte de la lace, plucking, préparation avant pose, rendu scalp naturel. Début possible entre 11h et 14h.</p>
+        <p>Blanchiment des nœuds, décoloration &amp; teinte de la lace, plucking, préparation avant pose, rendu scalp naturel. De 11h à 14h.</p>
         <span class="tdep">Sans kit 50€ · Avec kit 70€ — acompte 20€</span><br>
         <div class="train-btns">
-          <button class="tbtn-solid" onclick="selectService('Formation — Customisation perruque (sans kit)','50€',20,'Formation 1 jour — sans kit')">RÉSERVER SANS KIT — 50€ →</button>
-          <button class="tbtn-solid" onclick="selectService('Formation — Customisation perruque (avec kit)','70€',20,'Formation 1 jour — avec kit')">RÉSERVER AVEC KIT — 70€ →</button>
+          <button class="tbtn-solid" onclick="selectFormationFixe('Formation — Customisation perruque (sans kit)','50€',20,'Formation 1 jour — sans kit — 11h à 14h','11:00','14:00',1)">RÉSERVER SANS KIT — 50€ →</button>
+          <button class="tbtn-solid" onclick="selectFormationFixe('Formation — Customisation perruque (avec kit)','70€',20,'Formation 1 jour — avec kit — 11h à 14h','11:00','14:00',1)">RÉSERVER AVEC KIT — 70€ →</button>
         </div>
       </div>
       <div class="train-card">
         <div class="thead"><h3>Pose seule comme une pro — 2 jours</h3><span class="tprice">200€</span></div>
-        <p>Jour 1 : pose simple à la colle spray. Jour 2 : pose hairstyle à la colle blanche. Kit complet + certificat de participation.</p>
+        <p>Jour 1 : pose simple à la colle spray. Jour 2 : pose hairstyle à la colle blanche. Kit complet + certificat de participation. 11h à 16h chaque jour.</p>
         <span class="tdep">Acompte 100€ · Solde 100€ en espèces le jour J</span><br>
         <div class="train-btns">
-          <button class="tbtn-solid" onclick="selectService('Formation — Pose seule comme une pro (2 jours)','200€',100,'Formation 2 jours — kit complet + certificat')">RÉSERVER CETTE FORMATION →</button>
+          <button class="tbtn-solid" onclick="selectFormationFixe('Formation — Pose seule comme une pro (2 jours)','200€',100,'Formation 2 jours — kit complet + certificat — 11h à 16h chaque jour','11:00','16:00',2)">RÉSERVER CETTE FORMATION →</button>
         </div>
       </div>
       <div class="train-card">
         <div class="thead"><h3>Deviens prestataire de wigs — 2 jours</h3><span class="tprice">350€</span></div>
-        <p>Jour 1 : custom de deux perruques neuves. Jour 2 : coupe simple sur la première, hairstyle au choix sur la seconde. Prévoir 2 modèles.</p>
+        <p>Jour 1 : custom de deux perruques neuves. Jour 2 : coupe simple sur la première, hairstyle au choix sur la seconde. Prévoir 2 modèles. 11h à 16h chaque jour.</p>
         <span class="tdep">Acompte 150€ · Solde 200€ en espèces le jour J</span><br>
         <div class="train-btns">
-          <button class="tbtn-solid" onclick="selectService('Formation — Deviens prestataire de wigs (2 jours)','350€',150,'Formation 2 jours — prévoir 2 modèles')">RÉSERVER CETTE FORMATION →</button>
+          <button class="tbtn-solid" onclick="selectFormationFixe('Formation — Deviens prestataire de wigs (2 jours)','350€',150,'Formation 2 jours — prévoir 2 modèles — 11h à 16h chaque jour','11:00','16:00',2)">RÉSERVER CETTE FORMATION →</button>
         </div>
       </div>
     </div>
@@ -257,11 +257,11 @@
 
     <form id="booking-form" onsubmit="return false;">
       <label class="field">Date souhaitée</label>
-      <input type="date" id="date_rdv" onchange="refreshTicket()">
+      <input type="date" id="date_rdv">
 
       <label class="field">Heure (11h – 19h)</label>
-      <select id="heure_rdv" onchange="refreshTicket()"><option value="">Choisir un créneau</option></select>
-      <p class="slot-note">Créneaux d'une heure, dernier départ à 18h.</p>
+      <select id="heure_rdv"><option value="">Choisir un créneau</option></select>
+      <p class="slot-note">Le créneau s'adapte automatiquement à la durée de la prestation choisie.</p>
 
       <label class="field">Nom</label>
       <input type="text" id="nom" placeholder="Ton nom complet">
@@ -274,6 +274,35 @@
 
       <label class="field">Instagram</label>
       <input type="text" id="insta" placeholder="@toncompte">
+
+      <div id="repose-box" style="display:none;margin-top:16px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--cream)">
+          <input type="checkbox" id="repose-checkbox">
+          Avec repose (supplément affiché après confirmation par SWOO HAIR)
+        </label>
+      </div>
+
+      <div id="photo-etat-box" style="display:none">
+        <label class="upload-box">📎 AJOUTER UNE PHOTO DE L'ÉTAT ACTUEL DE TA PERRUQUE
+          <input type="file" id="photo-etat" accept="image/*">
+        </label>
+      </div>
+
+      <div id="supplements-box" style="display:none;margin-top:16px">
+        <p class="slot-note" style="margin-bottom:8px">Suppléments éventuels :</p>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--cream);margin-bottom:6px">
+          <input type="checkbox" id="supp-horsCreneaux"> Hors créneaux (avant 11h / après 18h) — +10€
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--cream);margin-bottom:6px">
+          <input type="checkbox" id="supp-stylingCoupe"> Styling / Coupe carré — +10€
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--cream);margin-bottom:6px">
+          <input type="checkbox" id="supp-depotVeille"> Dépôt perruque la veille — +10€
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--cream)">
+          <input type="checkbox" id="supp-customJourMeme"> Customisation le jour même — +15€
+        </label>
+      </div>
 
       <label class="upload-box">📎 AJOUTER LA CAPTURE DU PAIEMENT PAYPAL
         <input type="file" id="capture" accept="image/*">
