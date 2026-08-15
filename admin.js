@@ -159,7 +159,7 @@ async function respond(id, status){
   console.log("2. update Supabase terminé, erreur:", error);
   if(error){ alert("Erreur lors de la mise à jour."); return; }
 
-  const r = allReservations.find(x => x.id === id);
+ const r = allReservations.find(x => String(x.id) === String(id));
   console.log("3. réservation trouvée:", r);
   if(r){
     console.log("4. avant envoyerEmail");
