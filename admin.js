@@ -188,9 +188,11 @@ async function respond(id, status){
   if(error){ await customAlert("Erreur lors de la mise à jour."); return; }
 
   const r = allReservations.find(x => String(x.id) === String(id));
+  let emailOk = false;
   if(r){
     try{
       await envoyerEmail(r, status);
+      emailOk = true;
     }catch(e){
       console.error("Email non envoyé :", e);
       await customAlert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé — vérifie tes identifiants EmailJS.");
@@ -198,6 +200,11 @@ async function respond(id, status){
   }
 
   await loadRequests();
+
+  if(emailOk){
+    const label = status === 'confirmed' ? 'acceptée' : 'refusée';
+    await customAlert(`Demande ${label} ✓ — l'e-mail a bien été envoyé à la cliente.`);
+  }
 }
 
 async function removeReservation(id){
@@ -206,6 +213,7 @@ async function removeReservation(id){
   const { error } = await sb.from('reservations').delete().eq('id', id);
   if(error){ await customAlert("Erreur lors de la suppression."); return; }
   await loadRequests();
+  await customAlert("Demande supprimée ✓");
 }
 
 sb.auth.getSession().then(({data})=>{
