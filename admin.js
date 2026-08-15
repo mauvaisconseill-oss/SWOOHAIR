@@ -2,10 +2,10 @@ const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lanltcnlza2d4aHNvamVzY3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODY2OTcsImV4cCI6MjEwMjA2MjY5N30.rBggWuPcL5155_MnrnVG9Gk0BnzA6R89l-4sXeGxvqM";
 
 /* ★★★ EmailJS — remplace par tes vrais identifiants ★★★ */
-const EMAILJS_PUBLIC_KEY = "TA_PUBLIC_KEY";
-const EMAILJS_SERVICE_ID = "TON_SERVICE_ID";
-const EMAILJS_TEMPLATE_CONFIRM = "TON_TEMPLATE_ID_CONFIRMATION";
-const EMAILJS_TEMPLATE_DECLINE = "TON_TEMPLATE_ID_REFUS";
+const EMAILJS_PUBLIC_KEY = "N3e331Qf_9wb8UEtE";
+const EMAILJS_SERVICE_ID = "service_ehfhwi8";
+const EMAILJS_TEMPLATE_CONFIRM = "template_r3jmb3f";
+const EMAILJS_TEMPLATE_DECLINE = "template_4y1bw8a";
 
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
