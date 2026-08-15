@@ -41,10 +41,36 @@ document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 
 /* ---------- Data : catalogue ---------- */
 const CATALOG = {
-  "Barrel Twists":[["Barrel simple","30€",10],["Barrel motif","35€",10],["Retwist locks avec coupe","45€",10],["Flat Twist simple","30€",10],["Flat Twist simple modèle","35€",10]],
-  "Nattes":[["Nattes collées wig","10€",10],["Nattes collées simple","15€",10],["Nattes motif","20€",10]],
-  "Ponytail":[["Ponytail simple","50€",20],["Frange / hairstyle","10€",20]],
-  "Perruque":[["Pose + custom","50€",10],["Pose","40€",10],["Pose sans colle","30€",10],["Customisation","25€",10],["Décoloration des nœuds","15€",10],["Lavage wig","20€",10],["Remise à neuf","30€",10],["Changement de lace","25€",10],["Styling / Coupe carré","10€",10],["Confection wig","70€",10],["Couleur wig","Devis",10]]
+  "Barrel Twists":[
+    {name:"Barrel simple", price:"30€", dep:10, duree:150, type:"slot"},
+    {name:"Barrel motif", price:"35€", dep:10, duree:150, type:"slot"},
+    {name:"Retwist locks avec coupe", price:"45€", dep:10, duree:270, type:"slot"}, // 4-5h, ajuste si besoin
+    {name:"Flat Twist simple", price:"30€", dep:10, duree:150, type:"slot"},
+    {name:"Flat Twist simple modèle", price:"35€", dep:10, duree:150, type:"slot"}
+  ],
+  "Nattes":[
+    {name:"Nattes collées wig", price:"10€", dep:10, duree:30, type:"slot"},
+    {name:"Nattes collées simple", price:"15€", dep:10, duree:30, type:"slot"},
+    {name:"Nattes motif", price:"20€", dep:10, duree:90, type:"slot"}
+  ],
+  "Ponytail":[
+    {name:"Ponytail simple", price:"50€", dep:20, duree:180, type:"slot"},
+    {name:"Frange / hairstyle", price:"10€", dep:20, duree:30, type:"slot"}
+  ],
+  "Perruque":[
+    {name:"Pose + custom", price:"50€", dep:10, duree:120, type:"slot", needPhoto:true},
+    {name:"Pose", price:"40€", dep:10, duree:120, type:"slot", needPhoto:true, reposeSupp:0}, // ← mets le vrai montant du supplément repose
+    {name:"Pose sans colle", price:"30€", dep:10, duree:120, type:"slot", needPhoto:true},
+    {name:"Customisation", price:"25€", dep:10, duree:0, type:"depot"},
+    {name:"Décoloration des nœuds", price:"15€", dep:10, duree:0, type:"depot"},
+    {name:"Lavage wig", price:"20€", dep:10, duree:0, type:"depot"},
+    {name:"Remise à neuf", price:"30€", dep:10, duree:0, type:"depot"},
+    {name:"Changement de lace", price:"25€", dep:10, duree:0, type:"depot"},
+    {name:"Styling / Coupe carré", price:"10€", dep:10, duree:45, type:"slot"},
+    {name:"Confection wig", price:"70€", dep:10, duree:180, type:"slot"}, // durée à confirmer
+    {name:"Couleur wig", price:"Devis", dep:0, duree:0, type:"devis"}
+  ]
+};
 };
 const NOTES = {
   "Barrel Twists":"Cheveux lavés 2 à 3 jours avant",
