@@ -449,8 +449,6 @@ if(photoEtatFile){
     photoEtatPath = fname;
   }
 }
-  }
-
   const { total: suppTotal, labels: suppLabels } = calculerSupplements();
   const reposeChoisie = current.hasRepose && document.getElementById('repose-checkbox')?.checked;
 
