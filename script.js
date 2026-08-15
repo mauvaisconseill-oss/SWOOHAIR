@@ -10,10 +10,8 @@ const supabaseClient = (SUPABASE_URL.includes("TON-PROJET"))
   ? null
   : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ★★★ Montant du supplément "avec repose" — DEMANDE LE CHIFFRE À TA COUSINE ★★★ */
-const SUPPLEMENT_REPOSE = 0; // en euros, remplace 0 par le vrai montant
+const SUPPLEMENT_REPOSE = 0; // ★ remplace par le vrai montant
 
-/* ★ Suppléments (montants confirmés par ta cousine) */
 const SUPPLEMENTS = {
   horsCreneaux:    { label: "Hors créneaux (avant 11h / après 18h)", montant: 10 },
   stylingCoupe:    { label: "Styling / Coupe carré",                  montant: 10 },
@@ -21,7 +19,7 @@ const SUPPLEMENTS = {
   customJourMeme:  { label: "Customisation le jour même",             montant: 15 }
 };
 
-/* ---------- Popup stylée (remplace alert()) ---------- */
+/* ---------- Popups ---------- */
 function customAlert(message){
   return new Promise(resolve=>{
     const overlay = document.createElement('div');
@@ -34,8 +32,6 @@ function customAlert(message){
     overlay.querySelector('#ca-ok').onclick = ()=>{ overlay.remove(); resolve(); };
   });
 }
-
-/* ---------- Popup de confirmation (Annuler / Confirmer) ---------- */
 function customConfirm(message){
   return new Promise(resolve=>{
     const overlay = document.createElement('div');
@@ -66,42 +62,58 @@ const observer = new IntersectionObserver(entries=>{
 document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 
 /* ============================================================
-   CATALOGUE — chaque prestation a maintenant :
-   - duree     : en minutes (0 si pas de créneau horaire)
-   - type      : "slot" (créneau horaire), "depot" (dépôt, juste une date),
-                 "devis" (pas de réservation directe), "formation-fixe"
-                 (horaire imposé, ex: 11h-16h)
-   - needPhoto : true si on doit demander une photo de l'état actuel
+   CATALOGUE — avec description détaillée par prestation
    ============================================================ */
 const CATALOG = {
   "Barrel Twists":[
-    {name:"Barrel simple", price:"30€", dep:10, duree:150, type:"slot"},
-    {name:"Barrel motif", price:"35€", dep:10, duree:150, type:"slot"},
-    {name:"Retwist locks avec coupe", price:"45€", dep:10, duree:270, type:"slot"},
-    {name:"Flat Twist simple", price:"30€", dep:10, duree:150, type:"slot"},
-    {name:"Flat Twist simple modèle", price:"35€", dep:10, duree:150, type:"slot"}
+    {name:"Barrel simple", price:"30€", dep:10, duree:150, type:"slot",
+      desc:"Un barrel twist net et soigné, réalisé avec des séparations propres pour un rendu fluide et durable. Une coiffure protectrice élégante, facile à porter au quotidien pendant plusieurs semaines."},
+    {name:"Barrel motif", price:"35€", dep:10, duree:150, type:"slot",
+      desc:"Le barrel twist décliné avec un motif personnalisé pour un rendu plus créatif et unique, tout en gardant une tenue durable et une protection optimale des cheveux."},
+    {name:"Retwist locks avec coupe", price:"45€", dep:10, duree:270, type:"slot",
+      desc:"Rafraîchissement complet de tes locks avec retwist et coupe d'entretien, pour un rendu net et une repousse soignée. Durée variable selon la longueur et l'état des locks (4 à 5h)."},
+    {name:"Flat Twist simple", price:"30€", dep:10, duree:150, type:"slot",
+      desc:"Flat twists plaqués au cuir chevelu pour une finition nette et discrète, idéale au quotidien comme en coiffure protectrice."},
+    {name:"Flat Twist simple modèle", price:"35€", dep:10, duree:150, type:"slot",
+      desc:"Flat twists avec un motif de séparation personnalisé, pour une touche plus originale tout en gardant une tenue nette et confortable."}
   ],
   "Nattes":[
-    {name:"Nattes collées wig", price:"10€", dep:10, duree:30, type:"slot"},
-    {name:"Nattes collées simple", price:"15€", dep:10, duree:30, type:"slot"},
-    {name:"Nattes motif", price:"20€", dep:10, duree:90, type:"slot"}
+    {name:"Nattes collées wig", price:"10€", dep:10, duree:30, type:"slot",
+      desc:"Préparation des nattes collées avant la pose de ta perruque, pour une base nette et un rendu naturel au niveau du scalp."},
+    {name:"Nattes collées simple", price:"15€", dep:10, duree:30, type:"slot",
+      desc:"Nattage collé simple, propre et confortable, en préparation d'une pose ou pour un usage seul."},
+    {name:"Nattes motif", price:"20€", dep:10, duree:90, type:"slot",
+      desc:"Nattes collées avec motif personnalisé pour un rendu soigné et original, adapté à ton style."}
   ],
   "Ponytail":[
-    {name:"Ponytail simple", price:"50€", dep:20, duree:180, type:"slot"},
-    {name:"Frange / hairstyle", price:"10€", dep:20, duree:30, type:"slot"}
+    {name:"Ponytail simple", price:"50€", dep:20, duree:180, type:"slot",
+      desc:"Préparation et lissage des cheveux, plaquage soigné avec une finition nette, réalisation d'une ponytail haute selon le style souhaité, pose de la queue de cheval (colle ou fil selon préférence) et finitions professionnelles (baby hairs, brillance et fixation)."},
+    {name:"Frange / hairstyle", price:"10€", dep:20, duree:30, type:"slot",
+      desc:"Ajout d'une frange ou d'un styling complémentaire à ta ponytail pour personnaliser le rendu final."}
   ],
   "Perruque":[
-    {name:"Pose + custom", price:"50€", dep:10, duree:120, type:"slot", needPhoto:true},
-    {name:"Pose", price:"40€", dep:10, duree:120, type:"slot", needPhoto:true, hasRepose:true},
-    {name:"Pose sans colle", price:"30€", dep:10, duree:120, type:"slot", needPhoto:true},
-    {name:"Customisation", price:"25€", dep:10, duree:0, type:"depot", needPhoto:true},
-    {name:"Décoloration des nœuds", price:"15€", dep:10, duree:0, type:"depot", needPhoto:true},
-    {name:"Lavage wig", price:"20€", dep:10, duree:0, type:"depot", needPhoto:true},
-    {name:"Remise à neuf", price:"30€", dep:10, duree:0, type:"depot", needPhoto:true},
-    {name:"Changement de lace", price:"25€", dep:10, duree:0, type:"depot", needPhoto:true},
-    {name:"Styling / Coupe carré", price:"10€", dep:10, duree:45, type:"slot"},
-    {name:"Confection wig", price:"70€", dep:10, duree:180, type:"slot"},
-    {name:"Couleur wig", price:"Devis", dep:0, duree:0, type:"devis"}
+    {name:"Pose + custom", price:"50€", dep:10, duree:120, type:"slot", needPhoto:true,
+      desc:"Pose complète de ta perruque avec customisation incluse : décoloration des nœuds, découpe de la tulle et floutage de la lace pour un rendu scalp naturel. La perruque doit être déposée propre avant le rendez-vous."},
+    {name:"Pose", price:"40€", dep:10, duree:120, type:"slot", needPhoto:true, hasRepose:true,
+      desc:"Pose soignée de ta perruque avec découpe de la lace et application de la colle, floutage pour un rendu naturel. Option 'avec repose' disponible si ta perruque a déjà été posée précédemment."},
+    {name:"Pose sans colle", price:"30€", dep:10, duree:120, type:"slot", needPhoto:true,
+      desc:"Pose de ta perruque sans colle, une alternative douce et rapide pour un port confortable au quotidien."},
+    {name:"Customisation", price:"25€", dep:10, duree:0, type:"depot", needPhoto:true,
+      desc:"Blanchiment des nœuds et customisation complète de ta perruque pour un rendu scalp naturel. Dépôt requis 3 à 6 jours avant, perruque propre exigée."},
+    {name:"Décoloration des nœuds", price:"15€", dep:10, duree:0, type:"depot", needPhoto:true,
+      desc:"Décoloration des nœuds de ta lace pour un rendu plus naturel au niveau du cuir chevelu. Dépôt requis avant traitement."},
+    {name:"Lavage wig", price:"20€", dep:10, duree:0, type:"depot", needPhoto:true,
+      desc:"Lavage professionnel et soin de ta perruque pour retrouver douceur et brillance."},
+    {name:"Remise à neuf", price:"30€", dep:10, duree:0, type:"depot", needPhoto:true,
+      desc:"Restauration complète de ta perruque abîmée ou usée : lavage, soin et remise en forme pour un rendu comme neuf."},
+    {name:"Changement de lace", price:"25€", dep:10, duree:0, type:"depot", needPhoto:true,
+      desc:"Remplacement de la lace de ta perruque pour prolonger sa durée de vie et retrouver un rendu net."},
+    {name:"Styling / Coupe carré", price:"10€", dep:10, duree:45, type:"slot",
+      desc:"Coupe carré ou styling personnalisé sur ta perruque déjà posée, pour un rendu frais et sur-mesure."},
+    {name:"Confection wig", price:"70€", dep:10, duree:180, type:"slot",
+      desc:"Confection complète d'une perruque sur-mesure selon tes préférences de couleur, longueur et texture."},
+    {name:"Couleur wig", price:"Devis", dep:0, duree:0, type:"devis",
+      desc:"Coloration personnalisée de ta perruque — envoie une photo de ta perruque sur Instagram pour recevoir ton devis avant réservation."}
   ]
 };
 const NOTES = {
@@ -114,18 +126,44 @@ const NOTES = {
 Object.keys(CATALOG).forEach(cat=>{
   const wrap = document.querySelector(`.svc-list[data-cat="${cat}"]`);
   if(!wrap) return;
-  CATALOG[cat].forEach(item=>{
+  CATALOG[cat].forEach((item, idx)=>{
     const row = document.createElement('div');
-    row.className='svc-row';
+    row.className='svc-row-wrap';
     const dureeTxt = item.type === 'slot' ? ` · ${fmtDuree(item.duree)}` : (item.type === 'depot' ? ' · Dépôt' : '');
-    row.innerHTML = `<div class="left"><span class="svc-name">${item.name}</span><span class="svc-tiny">${(NOTES[cat]||'')}${dureeTxt}</span></div>
-      <div class="svc-right"><span class="svc-price">${item.price}</span><span class="svc-pick">→ RÉSERVER</span></div>`;
-    row.addEventListener('click',()=>{
+    const descId = `desc-${cat.replace(/\s+/g,'')}-${idx}`;
+    row.innerHTML = `
+      <div class="svc-row">
+        <div class="left">
+          <span class="svc-name">${item.name}</span>
+          <span class="svc-tiny">${(NOTES[cat]||'')}${dureeTxt}</span>
+          ${item.desc ? `<button type="button" class="svc-desc-toggle" data-target="${descId}">Voir la description ↓</button>` : ''}
+        </div>
+        <div class="svc-right">
+          <span class="svc-price">${item.price}</span>
+          <span class="svc-pick">→ RÉSERVER</span>
+        </div>
+      </div>
+      ${item.desc ? `<p class="svc-desc" id="${descId}" style="display:none">${item.desc}</p>` : ''}
+    `;
+    wrap.appendChild(row);
+
+    row.querySelector('.svc-row').addEventListener('click', (e)=>{
+      if(e.target.classList.contains('svc-desc-toggle')) return;
       document.querySelectorAll('.svc-row').forEach(r=>r.classList.remove('sel'));
-      row.classList.add('sel');
+      row.querySelector('.svc-row').classList.add('sel');
       selectService(item, NOTES[cat]||'');
     });
-    wrap.appendChild(row);
+
+    const toggle = row.querySelector('.svc-desc-toggle');
+    if(toggle){
+      toggle.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const p = document.getElementById(descId);
+        const open = p.style.display !== 'none';
+        p.style.display = open ? 'none' : 'block';
+        toggle.textContent = open ? 'Voir la description ↓' : 'Masquer la description ↑';
+      });
+    }
   });
 });
 
@@ -136,20 +174,15 @@ function fmtDuree(min){
 }
 
 /* ---------- Formations à horaires fixes ---------- */
-/* Ces items sont sélectionnés directement depuis les boutons HTML.
-   Adapte les onclick dans index.html pour appeler selectFormationFixe(...) */
 function selectFormationFixe(name, price, dep, note, heureDebut, heureFin, jours){
-  current = {
-    name, price, dep, note, type:"formation-fixe",
-    heureDebut, heureFin, jours: jours||1, duree: 0
-  };
+  current = { name, price, dep, note, type:"formation-fixe", heureDebut, heureFin, jours: jours||1, duree: 0 };
   renderTicket();
   document.getElementById('reservation').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 /* ---------- Ticket / sélection ---------- */
 let current = null;
-const OUVERTURE = 11*60, FERMETURE = 19*60; // en minutes depuis minuit
+const OUVERTURE = 11*60, FERMETURE = 19*60;
 
 function selectService(item, note){
   current = { ...item, note };
@@ -157,11 +190,14 @@ function selectService(item, note){
   document.getElementById('reservation').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
+function prixNumerique(str){
+  const n = parseFloat(String(str).replace('€','').replace(',','.'));
+  return isNaN(n) ? 0 : n;
+}
+
 function renderTicket(){
   document.getElementById('ticket-empty').style.display='none';
   document.getElementById('ticket-filled').style.display='block';
-  document.getElementById('t-name').textContent = current.name;
-  document.getElementById('t-price').textContent = current.price;
   document.getElementById('t-detail').textContent = current.note || '—';
   document.getElementById('t-dep').textContent = current.dep+'€';
 
@@ -176,13 +212,36 @@ function renderTicket(){
 
   toggleFormFields();
   refreshTicket();
+  updateTicketTotal();
   if(current.type === 'slot') refreshHeureAvailability();
 }
 
-/* Affiche/cache les bons champs du formulaire selon le type de prestation */
+/* Met à jour le prix affiché dans le ticket EN DIRECT avec les suppléments cochés */
+function updateTicketTotal(){
+  if(!current) return;
+  const base = prixNumerique(current.price);
+  const { total: suppTotal } = calculerSupplements();
+  const finalPrice = base + suppTotal;
+  const nameEl = document.getElementById('t-name');
+  const priceEl = document.getElementById('t-price');
+  nameEl.textContent = current.name;
+  if(current.type === 'devis'){
+    priceEl.textContent = 'Sur devis';
+  } else if(suppTotal > 0){
+    priceEl.textContent = `${current.price} + ${suppTotal}€ = ${finalPrice}€`;
+  } else {
+    priceEl.textContent = current.price;
+  }
+}
+
+/* Écoute les cases suppléments/repose pour tout recalculer en direct */
+document.addEventListener('change', (e)=>{
+  if(e.target.id && (e.target.id.startsWith('supp-') || e.target.id === 'repose-checkbox')){
+    updateTicketTotal();
+  }
+});
+
 function toggleFormFields(){
-  const heureWrap = document.getElementById('heure_rdv').closest('label')?.previousElementSibling
-    ? document.getElementById('heure_rdv').parentElement : null;
   const heureLabel = document.querySelector('label[for="heure_rdv"]') || document.getElementById('heure_rdv').previousElementSibling;
   const heureSelect = document.getElementById('heure_rdv');
   const reposeBox = document.getElementById('repose-box');
@@ -197,11 +256,7 @@ function toggleFormFields(){
   if(photoBox) photoBox.style.display = current.needPhoto ? 'block' : 'none';
   if(suppBox) suppBox.style.display = (current.type === 'slot' || current.type === 'depot') ? 'block' : 'none';
 
-  if(current.type === 'devis'){
-    document.getElementById('date_rdv').closest('label') && (document.getElementById('date_rdv').style.display='none');
-  } else {
-    document.getElementById('date_rdv').style.display='block';
-  }
+  document.getElementById('date_rdv').style.display = current.type === 'devis' ? 'none' : 'block';
 }
 
 function refreshTicket(){
@@ -210,12 +265,11 @@ function refreshTicket(){
   document.getElementById('t-date').textContent = d ? new Date(d).toLocaleDateString('fr-FR') : 'à choisir';
   document.getElementById('t-heure').textContent = current && current.type === 'formation-fixe'
     ? `${current.heureDebut} – ${current.heureFin}`
-    : (h || (current && current.type === 'depot' ? 'Dépôt (pas d\'heure)' : 'à choisir'));
+    : (h || (current && current.type === 'depot' ? "Dépôt (pas d'heure)" : 'à choisir'));
 }
 
-/* ---------- Créneaux dynamiques selon la durée de la prestation ---------- */
+/* ---------- Créneaux dynamiques ---------- */
 const heureSel = document.getElementById('heure_rdv');
-
 function toMin(hhmm){ const [h,m] = hhmm.split(':').map(Number); return h*60+(m||0); }
 function toHHMM(min){ const h = Math.floor(min/60), m = min%60; return `${h}:${m.toString().padStart(2,'0')}`; }
 
@@ -225,19 +279,14 @@ async function refreshHeureAvailability(){
   if(!d || !current || current.type !== 'slot' || !supabaseClient) return;
 
   const { data: pris, error } = await supabaseClient
-    .from('reservations')
-    .select('heure_rdv,duree_minutes')
-    .eq('date_rdv', d)
-    .in('status', ['pending','confirmed']);
-
+    .from('reservations').select('heure_rdv,duree_minutes')
+    .eq('date_rdv', d).in('status', ['pending','confirmed']);
   if(error){ console.error(error); return; }
 
-  const occupes = (pris||[])
-    .filter(r => r.heure_rdv)
-    .map(r => {
-      const debut = toMin(r.heure_rdv);
-      return [debut, debut + (r.duree_minutes || 60)];
-    });
+  const occupes = (pris||[]).filter(r=>r.heure_rdv).map(r=>{
+    const debut = toMin(r.heure_rdv);
+    return [debut, debut + (r.duree_minutes||60)];
+  });
 
   for(let m = OUVERTURE; m + current.duree <= FERMETURE; m += 30){
     const finSlot = m + current.duree;
@@ -249,8 +298,7 @@ async function refreshHeureAvailability(){
       heureSel.appendChild(opt);
     }
   }
-
-  if(!heureSel.options.length || heureSel.options.length === 1){
+  if(heureSel.options.length <= 1){
     const opt = document.createElement('option');
     opt.disabled = true;
     opt.textContent = "Aucun créneau libre ce jour-là, essaie une autre date";
@@ -259,7 +307,7 @@ async function refreshHeureAvailability(){
 }
 document.getElementById('date_rdv').addEventListener('change', refreshHeureAvailability);
 
-/* ---------- Suppléments (checkboxes, montant ajouté au total affiché) ---------- */
+/* ---------- Suppléments ---------- */
 function calculerSupplements(){
   let total = 0;
   const labels = [];
@@ -285,9 +333,10 @@ function copyRecap(){
   const nom = document.getElementById('nom').value || '—';
   const tel = document.getElementById('telephone').value || '—';
   const insta = document.getElementById('insta').value || '—';
-  const { labels } = calculerSupplements();
+  const { total: suppTotal, labels } = calculerSupplements();
+  const finalPrice = prixNumerique(current.price) + suppTotal;
   const txt = `SWOO HAIR — Demande de rendez-vous
-Prestation : ${current.name} (${current.price})
+Prestation : ${current.name} (${current.price}${suppTotal ? ' + '+suppTotal+'€ suppléments = '+finalPrice+'€' : ''})
 Date : ${d}
 Heure : ${h}
 Nom : ${nom}
@@ -300,7 +349,7 @@ ${labels.length ? 'Suppléments : '+labels.join(', ') : ''}`;
   }).catch(()=>customAlert(txt));
 }
 
-/* ---------- Message d'avertissement avant confirmation (prestations perruque) ---------- */
+/* ---------- Message d'avertissement avant confirmation ---------- */
 function messageAvertissementPerruque(){
   return `Important avant de confirmer ton rendez-vous perruque :
 
@@ -312,14 +361,11 @@ function messageAvertissementPerruque(){
 En confirmant, tu acceptes ces conditions.`;
 }
 
-/* ---------- Envoi réel de la demande vers Supabase ---------- */
+/* ---------- Envoi vers Supabase ---------- */
 async function submitReservation(){
   const statusEl = document.getElementById('submit-status');
   if(!current){ customAlert("Choisis d'abord une prestation dans les rubriques plus haut."); return; }
-  if(!supabaseClient){
-    customAlert("Connexion à la base non configurée.");
-    return;
-  }
+  if(!supabaseClient){ customAlert("Connexion à la base non configurée."); return; }
 
   if(current.type === 'devis'){
     customAlert("Pour un devis, contacte-nous directement sur Instagram avec une photo/description de ta perruque.");
@@ -337,26 +383,21 @@ async function submitReservation(){
 
   if(!nom || !email || !date){
     statusEl.textContent = "Merci de remplir au minimum : date, nom et e-mail.";
-    statusEl.style.color = "#b23b3b";
-    return;
+    statusEl.style.color = "#b23b3b"; return;
   }
   if(current.type === 'slot' && !heure){
     statusEl.textContent = "Merci de choisir un créneau horaire.";
-    statusEl.style.color = "#b23b3b";
-    return;
+    statusEl.style.color = "#b23b3b"; return;
   }
   if(!captureFile){
     statusEl.textContent = "Merci de joindre la capture de ton paiement PayPal avant d'envoyer ta demande.";
-    statusEl.style.color = "#b23b3b";
-    return;
+    statusEl.style.color = "#b23b3b"; return;
   }
   if(current.needPhoto && !photoEtatFile){
     statusEl.textContent = "Merci de joindre une photo de l'état actuel de ta perruque.";
-    statusEl.style.color = "#b23b3b";
-    return;
+    statusEl.style.color = "#b23b3b"; return;
   }
 
-  /* Avertissement pour toute prestation perruque avant confirmation finale */
   if(current.needPhoto || current.type === 'depot'){
     const ok = await customConfirm(messageAvertissementPerruque());
     if(!ok) return;
@@ -384,15 +425,13 @@ async function submitReservation(){
   statusEl.textContent = "Envoi en cours…";
   statusEl.style.color = "";
 
-  let capturePath = null;
-  const { error: uploadError } = await supabaseClient.storage.from('captures-paiement').upload(`${Date.now()}_${captureFile.name}`, captureFile);
+  const captureName = `${Date.now()}_${captureFile.name}`;
+  const { error: uploadError } = await supabaseClient.storage.from('captures-paiement').upload(captureName, captureFile);
   if(uploadError){
     console.error(uploadError);
     statusEl.textContent = "Erreur lors de l'envoi de la capture, réessaie.";
-    statusEl.style.color = "#b23b3b";
-    return;
+    statusEl.style.color = "#b23b3b"; return;
   }
-  capturePath = `${Date.now()}_${captureFile.name}`;
 
   let photoEtatPath = null;
   if(photoEtatFile){
@@ -421,7 +460,7 @@ async function submitReservation(){
     duree_minutes: current.duree || null,
     nom, telephone, email,
     instagram: insta,
-    capture_paiement: capturePath,
+    capture_paiement: captureName,
     photo_etat_perruque: photoEtatPath,
     supplement_total: suppTotal
   });
@@ -429,8 +468,7 @@ async function submitReservation(){
   if(error){
     console.error(error);
     statusEl.textContent = "Une erreur est survenue, réessaie ou contacte-nous sur Instagram.";
-    statusEl.style.color = "#b23b3b";
-    return;
+    statusEl.style.color = "#b23b3b"; return;
   }
 
   statusEl.textContent = "Demande envoyée ✓ — tu recevras un e-mail dès qu'elle sera acceptée ou refusée.";
@@ -438,7 +476,7 @@ async function submitReservation(){
   document.getElementById('booking-form').querySelectorAll('input,button,select').forEach(el=>el.disabled=true);
 }
 
-/* ---------- Avis (démo en mémoire) ---------- */
+/* ---------- Avis ---------- */
 let AVIS = [
   {nom:"Awa",note:5,svc:"Barrel motif",txt:"Le motif est ultra propre, tenue impeccable pendant trois semaines."},
   {nom:"Kadia",note:5,svc:"Pose + custom",txt:"Rendu scalp hyper naturel, personne n'a deviné que c'était une perruque."},
@@ -475,5 +513,4 @@ function postAvis(){
   customAlert("Merci pour ton avis 🖤");
 }
 
-/* ---------- Footer date ---------- */
 document.getElementById('footer-meta').textContent = "© SWOO HAIR RIS-ORANGIS " + new Date().getFullYear();
