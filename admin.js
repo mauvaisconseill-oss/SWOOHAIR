@@ -154,29 +154,26 @@ async function envoyerEmail(r, status){
 }
 
 async function respond(id, status){
+  console.log("1. respond() appelée avec", id, status);
   const { error } = await sb.from('reservations').update({ status }).eq('id', id);
+  console.log("2. update Supabase terminé, erreur:", error);
   if(error){ alert("Erreur lors de la mise à jour."); return; }
 
   const r = allReservations.find(x => x.id === id);
+  console.log("3. réservation trouvée:", r);
   if(r){
+    console.log("4. avant envoyerEmail");
     try{
-      await envoyerEmail(r, status);
+      const result = await envoyerEmail(r, status);
+      console.log("5. envoyerEmail réussi:", result);
     }catch(e){
-      console.error("Email non envoyé :", e);
+      console.error("6. Email non envoyé :", e);
       alert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé — vérifie tes identifiants EmailJS.");
     }
+  } else {
+    console.log("3b. AUCUNE réservation trouvée pour cet id !");
   }
 
   await loadRequests();
+  console.log("7. loadRequests terminé");
 }
-
-async function removeReservation(id){
-  if(!confirm("Supprimer définitivement cette demande ?")) return;
-  const { error } = await sb.from('reservations').delete().eq('id', id);
-  if(error){ alert("Erreur lors de la suppression."); return; }
-  await loadRequests();
-}
-
-sb.auth.getSession().then(({data})=>{
-  if(data.session) showDashboard();
-});
