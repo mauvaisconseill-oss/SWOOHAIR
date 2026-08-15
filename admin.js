@@ -19,6 +19,36 @@ const loginErr = document.getElementById('login-err');
 let allReservations = [];
 let currentTab = 'pending';
 
+/* ---------- Popups stylées ---------- */
+function customAlert(message){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,15,10,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+    overlay.innerHTML = `<div style="background:#f5f0e7;border-radius:14px;padding:30px 28px;max-width:360px;width:100%;text-align:center;border:1px solid #ddd;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif">
+      <p style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:22px;color:#222;line-height:1.4">${message}</p>
+      <button id="ca-ok" style="padding:11px 24px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:#111;color:#f5f0e7">OK</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#ca-ok').onclick = ()=>{ overlay.remove(); resolve(); };
+  });
+}
+function customConfirm(message){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,15,10,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+    overlay.innerHTML = `<div style="background:#f5f0e7;border-radius:14px;padding:30px 28px;max-width:400px;width:100%;text-align:center;border:1px solid #ddd;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif">
+      <p style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:24px;color:#222;line-height:1.5;white-space:pre-line">${message}</p>
+      <div style="display:flex;gap:10px">
+        <button id="cc-cancel" style="flex:1;padding:12px 16px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:transparent;color:#111">ANNULER</button>
+        <button id="cc-ok" style="flex:1;padding:12px 16px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:#111;color:#f5f0e7">JE CONFIRME</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#cc-cancel').onclick = ()=>{ overlay.remove(); resolve(false); };
+    overlay.querySelector('#cc-ok').onclick = ()=>{ overlay.remove(); resolve(true); };
+  });
+}
+
 async function adminLogin(){
   loginErr.textContent = "";
   const email = document.getElementById('admin-email').value.trim();
@@ -154,33 +184,27 @@ async function envoyerEmail(r, status){
 }
 
 async function respond(id, status){
-  console.log("1. respond() appelée avec", id, status);
   const { error } = await sb.from('reservations').update({ status }).eq('id', id);
-  console.log("2. update Supabase terminé, erreur:", error);
-  if(error){ alert("Erreur lors de la mise à jour."); return; }
+  if(error){ await customAlert("Erreur lors de la mise à jour."); return; }
 
- const r = allReservations.find(x => String(x.id) === String(id));
-  console.log("3. réservation trouvée:", r);
+  const r = allReservations.find(x => String(x.id) === String(id));
   if(r){
-    console.log("4. avant envoyerEmail");
     try{
-      const result = await envoyerEmail(r, status);
-      console.log("5. envoyerEmail réussi:", result);
+      await envoyerEmail(r, status);
     }catch(e){
-      console.error("6. Email non envoyé :", e);
-      alert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé — vérifie tes identifiants EmailJS.");
+      console.error("Email non envoyé :", e);
+      await customAlert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé — vérifie tes identifiants EmailJS.");
     }
-  } else {
-    console.log("3b. AUCUNE réservation trouvée pour cet id !");
   }
 
   await loadRequests();
-  console.log("7. loadRequests terminé");
 }
+
 async function removeReservation(id){
-  if(!confirm("Supprimer définitivement cette demande ?")) return;
+  const ok = await customConfirm("Supprimer définitivement cette demande ?");
+  if(!ok) return;
   const { error } = await sb.from('reservations').delete().eq('id', id);
-  if(error){ alert("Erreur lors de la suppression."); return; }
+  if(error){ await customAlert("Erreur lors de la suppression."); return; }
   await loadRequests();
 }
 
