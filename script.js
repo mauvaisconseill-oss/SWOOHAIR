@@ -438,11 +438,17 @@ const captureName = `${Date.now()}_${nettoyerNomFichier(captureFile.name)}`;
     statusEl.style.color = "#b23b3b"; return;
   }
 
-  let photoEtatPath = null;
-  if(photoEtatFile){
-    const fname = `etat_${Date.now()}_${nettoyerNomFichier(photoEtatFile.name)}`;
-    const { error: err2 } = await supabaseClient.storage.from('etat-perruque').upload(fname, photoEtatFile);
-    if(!err2) photoEtatPath = fname;
+ let photoEtatPath = null;
+if(photoEtatFile){
+  const fname = `etat_${Date.now()}_${nettoyerNomFichier(photoEtatFile.name)}`;
+  const { error: err2 } = await supabaseClient.storage.from('etat-perruque').upload(fname, photoEtatFile);
+  if(err2){
+    console.error("Erreur upload etat-perruque:", err2);
+    alert("Erreur upload photo état perruque : " + err2.message);
+  } else {
+    photoEtatPath = fname;
+  }
+}
   }
 
   const { total: suppTotal, labels: suppLabels } = calculerSupplements();
