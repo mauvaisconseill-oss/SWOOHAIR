@@ -177,3 +177,13 @@ async function respond(id, status){
   await loadRequests();
   console.log("7. loadRequests terminé");
 }
+async function removeReservation(id){
+  if(!confirm("Supprimer définitivement cette demande ?")) return;
+  const { error } = await sb.from('reservations').delete().eq('id', id);
+  if(error){ alert("Erreur lors de la suppression."); return; }
+  await loadRequests();
+}
+
+sb.auth.getSession().then(({data})=>{
+  if(data.session) showDashboard();
+});
