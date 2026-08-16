@@ -311,7 +311,6 @@ footer small{font-size:9px;letter-spacing:.12em;color:#8a8377;display:block;padd
   line-height:1;
   vertical-align:middle;
 }
-/* Mobile : photo en fond plein écran */
 .hero-photo{
   position: absolute;
   inset: 0;
@@ -321,14 +320,13 @@ footer small{font-size:9px;letter-spacing:.12em;color:#8a8377;display:block;padd
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 20%;
   display: block;
 }
 .hero-photo::after{
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(10,10,10,.75) 0%, rgba(10,10,10,.55) 45%, rgba(10,10,10,.25) 100%);
+  background: linear-gradient(90deg, rgba(10,10,10,.92) 0%, rgba(10,10,10,.8) 35%, rgba(10,10,10,.45) 65%, rgba(10,10,10,.15) 100%);
 }
 .hero-photo-tag{
   position: absolute;
@@ -345,31 +343,8 @@ footer small{font-size:9px;letter-spacing:.12em;color:#8a8377;display:block;padd
   position: relative;
   z-index: 1;
 }
-
-/* Desktop : petite carte photo flottante à côté du texte */
 @media(min-width:900px){
   .hero-photo{
-    position: absolute;
-    inset: auto;
-    right: 6%;
-    bottom: 10%;
-    width: 240px;
-    z-index: 3;
-    transform: rotate(-2deg);
-  }
-  .hero-photo img{
-    aspect-ratio: 3/4;
-    object-position: center 15%;
-    border-radius: 4px;
-    box-shadow: 0 20px 45px rgba(0,0,0,.4);
-  }
-  .hero-photo::after{
     display: none;
-  }
-  .hero-photo-tag{
-    position: static;
-    display: block;
-    margin-top: 10px;
-    text-align: right;
   }
 }
