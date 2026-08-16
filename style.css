@@ -321,6 +321,13 @@ footer small{font-size:9px;letter-spacing:.12em;color:#8a8377;display:block;padd
   height: 100%;
   object-fit: cover;
   display: block;
+  .hero-photo img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+}
 }
 .hero-photo::after{
   content: "";
