@@ -294,7 +294,7 @@ async function refreshHeureAvailability(){
     if(!conflit){
       const opt = document.createElement('option');
       opt.value = toHHMM(m);
-      opt.textContent = `${toHHMM(m)} — fin vers ${toHHMM(finSlot)}`;
+     opt.textContent = `${toHHMM(m)} – ${toHHMM(finSlot)}`;
       heureSel.appendChild(opt);
     }
   }
