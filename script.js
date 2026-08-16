@@ -288,7 +288,7 @@ async function refreshHeureAvailability(){
     return [debut, debut + (r.duree_minutes||60)];
   });
 
-  for(let m = OUVERTURE; m + current.duree <= FERMETURE; m += 30){
+  for(let m = OUVERTURE; m + current.duree <= FERMETURE; m += current.duree){
     const finSlot = m + current.duree;
     const conflit = occupes.some(([od, of_]) => m < of_ && finSlot > od);
     if(!conflit){
