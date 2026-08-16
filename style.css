@@ -311,3 +311,32 @@ footer small{font-size:9px;letter-spacing:.12em;color:#8a8377;display:block;padd
   line-height:1;
   vertical-align:middle;
 }
+.hero-photo{
+  position: absolute;
+  right: 6%;
+  bottom: 8%;
+  width: 220px;
+  transform: rotate(-2deg);
+  z-index: 3;
+}
+.hero-photo img{
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 20px 45px rgba(0,0,0,.35);
+  display: block;
+}
+.hero-photo-tag{
+  display: block;
+  margin-top: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--cream, #f5f0e7);
+  text-align: right;
+}
+@media (max-width: 900px){
+  .hero-photo{ display: none; }
+}
