@@ -18,6 +18,11 @@
   .admin-top h1{font-family:"Playfair Display",serif;font-size:24px}
   .admin-top button{background:transparent;border:1px solid var(--ink);padding:8px 14px;border-radius:6px;font-size:11.5px;letter-spacing:.06em;cursor:pointer}
 
+  /* Onglets principaux : Réservations / Planning */
+  .main-tabs{display:flex;gap:10px;margin-bottom:28px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .main-tab-btn{padding:12px 4px;margin-right:18px;border:0;background:transparent;font-size:13px;letter-spacing:.05em;cursor:pointer;color:#888;border-bottom:2px solid transparent;font-weight:500}
+  .main-tab-btn.active{color:var(--ink);border-bottom-color:var(--ink)}
+
   .tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
   .tab-btn{padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:var(--cream);font-size:12px;letter-spacing:.04em;cursor:pointer;color:#555}
   .tab-btn.active{background:var(--ink);color:var(--cream);border-color:var(--ink)}
@@ -38,6 +43,34 @@
   .btn-delete{background:transparent;color:#b23b3b;border-color:#b23b3b}
   .empty-state{text-align:center;color:#888;padding:60px 0;font-size:14px}
 
+  /* Planning */
+  .planning-card{background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:24px 22px;margin-bottom:22px}
+  .planning-title{font-family:"Playfair Display",serif;font-size:19px;margin-bottom:4px}
+  .planning-sub{font-size:12.5px;color:#777;margin-bottom:18px}
+
+  .jour-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .jour-row:last-child{border-bottom:0}
+  .jour-nom{width:100px;font-size:13.5px;font-weight:600}
+  .jour-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555}
+  .jour-heures{display:flex;align-items:center;gap:8px;font-size:13px}
+  .jour-heures input[type=time]{padding:7px 8px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff}
+  .jour-ferme-label{font-size:12.5px;color:#999;font-style:italic}
+
+  .btn-save-planning{margin-top:18px;padding:12px 22px;background:var(--ink);color:var(--cream);border:0;border-radius:6px;font-size:12px;letter-spacing:.06em;cursor:pointer}
+
+  .bloc-form{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+  .bloc-form input[type=date],.bloc-form input[type=time],.bloc-form input[type=text]{padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff}
+  .bloc-form input[type=text]{flex:1;min-width:160px}
+  .bloc-check{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;white-space:nowrap}
+  #bloc-heures{display:flex;align-items:center;gap:8px}
+  .bloc-form button{padding:10px 18px;background:var(--ink);color:var(--cream);border:0;border-radius:6px;font-size:11.5px;letter-spacing:.05em;cursor:pointer}
+
+  .exception-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:#fff;flex-wrap:wrap;gap:8px}
+  .exception-info{font-size:13px}
+  .exception-info b{font-weight:600}
+  .exception-note{color:#888;font-size:12px;font-style:italic}
+  .btn-del-exception{background:transparent;border:1px solid #b23b3b;color:#b23b3b;padding:7px 12px;border-radius:6px;font-size:11px;letter-spacing:.04em;cursor:pointer}
+
   .modal-overlay{position:fixed;inset:0;background:rgba(20,15,10,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
   .modal-box{background:var(--cream);border-radius:14px;padding:30px 28px;max-width:360px;width:100%;text-align:center;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.25)}
   .modal-box p{font-family:"Playfair Display",serif;font-size:17px;margin-bottom:24px;color:#222;line-height:1.4}
@@ -56,18 +89,52 @@
   <button onclick="adminLogin()">SE CONNECTER</button>
   <p class="admin-err" id="login-err"></p>
 </div>
+
 <div id="dash-view" class="admin-wrap" style="display:none">
   <div class="admin-top">
-    <h1>Demandes de réservation</h1>
+    <h1>Administration</h1>
     <button onclick="adminLogout()">SE DÉCONNECTER</button>
   </div>
-  <div class="tabs">
-    <button class="tab-btn active" data-status="pending" onclick="switchTab('pending')">EN ATTENTE <span class="tab-count" id="count-pending"></span></button>
-    <button class="tab-btn" data-status="confirmed" onclick="switchTab('confirmed')">ACCEPTÉES <span class="tab-count" id="count-confirmed"></span></button>
-    <button class="tab-btn" data-status="declined" onclick="switchTab('declined')">REFUSÉES <span class="tab-count" id="count-declined"></span></button>
+
+  <div class="main-tabs">
+    <button class="main-tab-btn active" data-view="reservations" onclick="switchMainView('reservations')">RÉSERVATIONS</button>
+    <button class="main-tab-btn" data-view="planning" onclick="switchMainView('planning')">GÉRER MON PLANNING</button>
   </div>
-  <div id="req-list"></div>
+
+  <div id="reservations-view">
+    <div class="tabs">
+      <button class="tab-btn active" data-status="pending" onclick="switchTab('pending')">EN ATTENTE <span class="tab-count" id="count-pending"></span></button>
+      <button class="tab-btn" data-status="confirmed" onclick="switchTab('confirmed')">ACCEPTÉES <span class="tab-count" id="count-confirmed"></span></button>
+      <button class="tab-btn" data-status="declined" onclick="switchTab('declined')">REFUSÉES <span class="tab-count" id="count-declined"></span></button>
+    </div>
+    <div id="req-list"></div>
+  </div>
+
+  <div id="planning-view" style="display:none">
+    <div class="planning-card">
+      <h2 class="planning-title">Horaires récurrents</h2>
+      <p class="planning-sub">Ces horaires s'appliquent chaque semaine, sauf les jours bloqués ci-dessous.</p>
+      <div id="jours-list"></div>
+      <button class="btn-save-planning" onclick="saveHoraires()">ENREGISTRER LES HORAIRES</button>
+    </div>
+
+    <div class="planning-card">
+      <h2 class="planning-title">Bloquer une date</h2>
+      <p class="planning-sub">Vacances, jour off, absence ponctuelle — la date ne sera plus proposée à la réservation.</p>
+      <div class="bloc-form">
+        <input type="date" id="bloc-date">
+        <label class="bloc-check"><input type="checkbox" id="bloc-journee" checked onchange="toggleBlocHeures()"> Journée entière</label>
+        <div id="bloc-heures" style="display:none">
+          <input type="time" id="bloc-debut"> <span>à</span> <input type="time" id="bloc-fin">
+        </div>
+        <input type="text" id="bloc-note" placeholder="Note (optionnel)">
+        <button onclick="ajouterException()">BLOQUER CETTE DATE</button>
+      </div>
+      <div id="exceptions-list"></div>
+    </div>
+  </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="admin.js"></script>
