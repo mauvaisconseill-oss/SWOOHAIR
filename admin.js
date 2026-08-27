@@ -69,6 +69,16 @@ async function showDashboard(){
   await loadRequests();
 }
 
+/* ---------- Navigation entre vues principales ---------- */
+function switchMainView(view){
+  document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.getElementById('reservations-view').style.display = view === 'reservations' ? 'block' : 'none';
+  document.getElementById('planning-view').style.display = view === 'planning' ? 'block' : 'none';
+  if(view === 'planning'){
+    loadPlanning();
+  }
+}
+
 function switchTab(status){
   currentTab = status;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.status === status));
@@ -214,6 +224,171 @@ async function removeReservation(id){
   if(error){ await customAlert("Erreur lors de la suppression."); return; }
   await loadRequests();
   await customAlert("Demande supprimée ✓");
+}
+
+/* ============================================================
+   GESTION DU PLANNING
+   ============================================================ */
+
+const JOURS_SEMAINE = [
+  { key: 'lundi',    label: 'Lundi' },
+  { key: 'mardi',    label: 'Mardi' },
+  { key: 'mercredi', label: 'Mercredi' },
+  { key: 'jeudi',    label: 'Jeudi' },
+  { key: 'vendredi', label: 'Vendredi' },
+  { key: 'samedi',   label: 'Samedi' },
+  { key: 'dimanche', label: 'Dimanche' }
+];
+
+let planningCharge = false;
+let horairesActuels = {};
+let exceptionsActuelles = [];
+
+async function loadPlanning(){
+  if(!planningCharge){
+    await loadHoraires();
+    await loadExceptions();
+    planningCharge = true;
+  }
+}
+
+async function loadHoraires(){
+  const { data, error } = await sb.from('planning_config').select('*').eq('id', 1).maybeSingle();
+  if(error || !data){
+    await customAlert("Impossible de charger les horaires. Vérifie que la table planning_config existe.");
+    return;
+  }
+  horairesActuels = data.jours || {};
+  renderJoursList();
+}
+
+function renderJoursList(){
+  const el = document.getElementById('jours-list');
+  el.innerHTML = JOURS_SEMAINE.map(j => {
+    const cfg = horairesActuels[j.key] || { ouvert:false };
+    const debut = cfg.debut || '09:00';
+    const fin = cfg.fin || '18:00';
+    return `
+    <div class="jour-row" data-jour="${j.key}">
+      <div class="jour-nom">${j.label}</div>
+      <label class="jour-toggle">
+        <input type="checkbox" class="jour-ouvert-check" ${cfg.ouvert ? 'checked' : ''} onchange="toggleJourOuvert('${j.key}', this.checked)">
+        Ouvert
+      </label>
+      <div class="jour-heures" id="heures-${j.key}" style="${cfg.ouvert ? '' : 'display:none'}">
+        <input type="time" id="debut-${j.key}" value="${debut}">
+        <span>à</span>
+        <input type="time" id="fin-${j.key}" value="${fin}">
+      </div>
+      <span class="jour-ferme-label" id="ferme-${j.key}" style="${cfg.ouvert ? 'display:none' : ''}">Fermé</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleJourOuvert(jourKey, ouvert){
+  document.getElementById('heures-'+jourKey).style.display = ouvert ? 'flex' : 'none';
+  document.getElementById('ferme-'+jourKey).style.display = ouvert ? 'none' : 'inline';
+}
+
+async function saveHoraires(){
+  const nouveauxJours = {};
+  JOURS_SEMAINE.forEach(j => {
+    const ouvert = document.querySelector(`#jours-list [data-jour="${j.key}"] .jour-ouvert-check`).checked;
+    if(ouvert){
+      nouveauxJours[j.key] = {
+        ouvert: true,
+        debut: document.getElementById('debut-'+j.key).value || '09:00',
+        fin: document.getElementById('fin-'+j.key).value || '18:00'
+      };
+    } else {
+      nouveauxJours[j.key] = { ouvert: false };
+    }
+  });
+
+  const { error } = await sb.from('planning_config')
+    .update({ jours: nouveauxJours, updated_at: new Date().toISOString() })
+    .eq('id', 1);
+
+  if(error){ await customAlert("Erreur lors de l'enregistrement des horaires."); return; }
+  horairesActuels = nouveauxJours;
+  await customAlert("Horaires enregistrés ✓");
+}
+
+function toggleBlocHeures(){
+  const journeeEntiere = document.getElementById('bloc-journee').checked;
+  document.getElementById('bloc-heures').style.display = journeeEntiere ? 'none' : 'flex';
+}
+
+async function loadExceptions(){
+  const today = new Date().toISOString().slice(0,10);
+  const { data, error } = await sb.from('planning_exceptions')
+    .select('*')
+    .gte('date', today)
+    .order('date', { ascending: true });
+  if(error){
+    document.getElementById('exceptions-list').innerHTML = `<p class="empty-state">Erreur de chargement des dates bloquées.</p>`;
+    return;
+  }
+  exceptionsActuelles = data || [];
+  renderExceptions();
+}
+
+function fmtDateFr(d){
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+
+function renderExceptions(){
+  const el = document.getElementById('exceptions-list');
+  if(!exceptionsActuelles.length){
+    el.innerHTML = `<p class="empty-state">Aucune date bloquée à venir.</p>`;
+    return;
+  }
+  el.innerHTML = exceptionsActuelles.map(ex => {
+    const periode = ex.journee_entiere
+      ? 'Journée entière'
+      : `${ex.debut || '?'} — ${ex.fin || '?'}`;
+    return `
+    <div class="exception-item">
+      <div class="exception-info">
+        <b>${fmtDateFr(ex.date)}</b> — ${periode}
+        ${ex.note ? `<div class="exception-note">${ex.note}</div>` : ''}
+      </div>
+      <button class="btn-del-exception" onclick="supprimerException('${ex.id}')">SUPPRIMER</button>
+    </div>`;
+  }).join('');
+}
+
+async function ajouterException(){
+  const date = document.getElementById('bloc-date').value;
+  if(!date){ await customAlert("Choisis une date."); return; }
+
+  const journeeEntiere = document.getElementById('bloc-journee').checked;
+  const debut = journeeEntiere ? null : (document.getElementById('bloc-debut').value || null);
+  const fin = journeeEntiere ? null : (document.getElementById('bloc-fin').value || null);
+  const note = document.getElementById('bloc-note').value.trim() || null;
+
+  const { error } = await sb.from('planning_exceptions').insert({
+    date, journee_entiere: journeeEntiere, debut, fin, note
+  });
+
+  if(error){ await customAlert("Erreur lors du blocage de la date."); return; }
+
+  document.getElementById('bloc-date').value = '';
+  document.getElementById('bloc-note').value = '';
+  document.getElementById('bloc-journee').checked = true;
+  toggleBlocHeures();
+
+  await loadExceptions();
+  await customAlert("Date bloquée ✓");
+}
+
+async function supprimerException(id){
+  const ok = await customConfirm("Débloquer cette date ?");
+  if(!ok) return;
+  const { error } = await sb.from('planning_exceptions').delete().eq('id', id);
+  if(error){ await customAlert("Erreur lors de la suppression."); return; }
+  await loadExceptions();
 }
 
 sb.auth.getSession().then(({data})=>{
