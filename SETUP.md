@@ -8,11 +8,13 @@
 2. Choisis un nom (ex: swoo-hair) et un mot de passe de base de données (note-le, tu n'en auras pas besoin après mais garde-le de côté)
 3. Attends ~2 min que le projet soit prêt
 
-## 2. Créer la table
+## 2. Créer les tables
 
 1. Dans le menu de gauche : **SQL Editor** → **New query**
-2. Colle tout le contenu du fichier `supabase/schema.sql` de ce dossier
-3. Clique **Run**
+2. Colle tout le contenu du fichier `supabase/schema.sql` de ce dossier → **Run**
+3. Nouvelle requête (**New query**) → colle tout le contenu du fichier `planning-setup.sql` → **Run**
+
+   Ce deuxième script crée les tables qui gèrent ton planning (horaires récurrents + dates bloquées), utilisées par l'onglet "Gérer mon planning" dans `admin.html`.
 
 ## 3. Récupérer tes clés publiques et les coller dans le code
 
@@ -28,39 +30,32 @@ Cette clé "anon public" n'est pas un secret — elle est faite pour être visib
 
 1. Menu de gauche : **Authentication** → **Users** → **Add user** → **Create new user**
 2. Mets ton e-mail et un mot de passe à toi (celui que tu utiliseras pour te connecter à `admin.html`)
-3. Décoche "Auto confirm user" n'est pas nécessaire, laisse les réglages par défaut et valide
+3. Laisse les réglages par défaut et valide
 
 C'est le SEUL compte qui pourra se connecter à ta page d'administration.
 
-## 5. Envoi automatique des e-mails (Resend + Edge Function)
+## 5. Envoi automatique des e-mails (EmailJS)
 
-### 5a. Créer un compte Resend (gratuit, 100 e-mails/jour)
-1. https://resend.com → crée un compte
-2. **API Keys** → **Create API Key** → copie la clé (commence par `re_...`)
-3. Pour envoyer depuis ta propre adresse (ex: reservations@tondomaine.com), il faut vérifier un nom de domaine dans Resend (onglet **Domains**). Si tu n'as pas de nom de domaine, Resend te donne une adresse de test le temps de ta mise en ligne — dis-le moi et j'ajuste le code.
+1. https://www.emailjs.com → crée un compte gratuit (200 e-mails/mois)
+2. **Email Services** → connecte ton adresse d'envoi (Gmail, Outlook, ou autre) → note l'ID du service généré
+3. **Email Templates** → crée un template pour l'acceptation et un pour le refus (variables du type `{{nom}}`, `{{prestation}}`, `{{date_rdv}}`, etc.) → note l'ID de chaque template
+4. **Account** → copie ta **Public Key**
+5. Colle ces 4 valeurs dans `admin.js` :
+   - `EMAILJS_PUBLIC_KEY`
+   - `EMAILJS_SERVICE_ID`
+   - `EMAILJS_TEMPLATE_CONFIRM`
+   - `EMAILJS_TEMPLATE_DECLINE`
 
-### 5b. Déployer la fonction qui envoie l'e-mail
-Ça se fait en ligne de commande, une seule fois. Si tu n'es pas à l'aise avec ça, dis-le moi et on regarde ensemble en visio-équivalent (je te guide commande par commande).
-
-```bash
-npm install -g supabase
-supabase login
-supabase link --project-ref TON-PROJECT-REF   # trouvable dans Settings > General
-supabase secrets set RESEND_API_KEY=re_xxxxxxxx
-supabase secrets set SUPABASE_SERVICE_ROLE_KEY=xxxx   # Settings > API > service_role (SECRET, ne jamais mettre dans script.js)
-supabase secrets set SUPABASE_URL=https://ton-projet.supabase.co
-supabase functions deploy send-status-email
-```
-
-3. Une fois déployée, Supabase te donne l'URL de la fonction (visible aussi dans **Edge Functions** dans le tableau de bord). Colle-la dans `admin.js` → `EDGE_FUNCTION_URL`.
+Ces identifiants EmailJS sont faits pour être visibles côté client, comme la clé Supabase anon — ce n'est pas un secret à protéger.
 
 ## Une fois tout branché
 
 - Le site (`index.html`) écrit chaque demande dans Supabase quand la cliente clique "ENVOYER MA DEMANDE DE RÉSERVATION"
 - Toi seule, connectée sur `admin.html`, vois les demandes et cliques "ACCEPTER" ou "REFUSER"
-- L'e-mail part automatiquement à la cliente à ce moment-là
+- L'e-mail part automatiquement à la cliente à ce moment-là, via EmailJS
+- Dans l'onglet "Gérer mon planning" de `admin.html`, tu définis tes horaires récurrents et tu bloques des dates ponctuelles
 
 ## Important
 
-- Ne mets jamais la clé `service_role` ni la clé Resend dans `script.js`, `admin.js` ou `index.html` — uniquement dans les secrets Supabase (étape 5b). Ce sont les seules clés vraiment secrètes.
 - `admin.html` n'est listé nulle part sur le site public — mais ce n'est pas un vrai coffre-fort, seule la connexion Supabase protège les données. Ne partage jamais ce lien publiquement.
+- Aucune clé secrète n'est nécessaire dans ce setup (contrairement à une version avec Resend + Edge Function) : toutes les clés utilisées dans `script.js` et `admin.js` (Supabase anon, EmailJS) sont conçues pour être publiques.
