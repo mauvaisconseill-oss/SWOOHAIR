@@ -1,7 +1,7 @@
 const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lanltcnlza2d4aHNvamVzY3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODY2OTcsImV4cCI6MjEwMjA2MjY5N30.rBggWuPcL5155_MnrnVG9Gk0BnzA6R89l-4sXeGxvqM";
 
-/* ★★★ EmailJS — remplace par tes vrais identifiants ★★★ */
+/* ★★★ EmailJS ★★★ */
 const EMAILJS_PUBLIC_KEY = "N3e331Qf_9wb8UEtE";
 const EMAILJS_SERVICE_ID = "service_ehfhwi8";
 const EMAILJS_TEMPLATE_CONFIRM = "template_r3jmb3f";
@@ -242,14 +242,13 @@ const JOURS_SEMAINE = [
 
 let planningCharge = false;
 let horairesActuels = {};
-let exceptionsActuelles = [];
 
 async function loadPlanning(){
   if(!planningCharge){
     await loadHoraires();
-    await loadExceptions();
     planningCharge = true;
   }
+  await loadSemaine();
 }
 
 async function loadHoraires(){
@@ -312,83 +311,132 @@ async function saveHoraires(){
   if(error){ await customAlert("Erreur lors de l'enregistrement des horaires."); return; }
   horairesActuels = nouveauxJours;
   await customAlert("Horaires enregistrés ✓");
+  await loadSemaine(); // les jours sans override affichés reflètent le nouveau défaut
 }
 
-function toggleBlocHeures(){
-  const journeeEntiere = document.getElementById('bloc-journee').checked;
-  document.getElementById('bloc-heures').style.display = journeeEntiere ? 'none' : 'flex';
+/* ---------- Vue par semaine ---------- */
+
+// Lundi de la semaine actuellement affichée
+let semaineAffichee = getLundiDeLaSemaine(new Date());
+
+function getLundiDeLaSemaine(d){
+  const date = new Date(d);
+  const jour = date.getDay(); // 0 = dimanche
+  const diff = jour === 0 ? -6 : 1 - jour;
+  date.setDate(date.getDate() + diff);
+  date.setHours(0,0,0,0);
+  return date;
 }
 
-async function loadExceptions(){
-  const today = new Date().toISOString().slice(0,10);
-  const { data, error } = await sb.from('planning_exceptions')
+function toISODate(d){
+  return d.toISOString().slice(0,10);
+}
+
+function fmtDateCourt(d){
+  return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+}
+
+function semainePrecedente(){
+  semaineAffichee.setDate(semaineAffichee.getDate() - 7);
+  loadSemaine();
+}
+function semaineSuivante(){
+  semaineAffichee.setDate(semaineAffichee.getDate() + 7);
+  loadSemaine();
+}
+function allerSemaineActuelle(){
+  semaineAffichee = getLundiDeLaSemaine(new Date());
+  loadSemaine();
+}
+
+async function loadSemaine(){
+  const debutSemaine = new Date(semaineAffichee);
+  const finSemaine = new Date(semaineAffichee);
+  finSemaine.setDate(finSemaine.getDate() + 6);
+
+  document.getElementById('semaine-sublabel').textContent =
+    `${fmtDateCourt(debutSemaine)} — ${fmtDateCourt(finSemaine)}`;
+  document.getElementById('semaine-label').firstChild.textContent =
+    `Semaine du ${debutSemaine.getDate()} au ${finSemaine.getDate()}`;
+
+  const debutISO = toISODate(debutSemaine);
+  const finISO = toISODate(finSemaine);
+
+  const { data, error } = await sb.from('planning_overrides')
     .select('*')
-    .gte('date', today)
-    .order('date', { ascending: true });
-  if(error){
-    document.getElementById('exceptions-list').innerHTML = `<p class="empty-state">Erreur de chargement des dates bloquées.</p>`;
-    return;
+    .gte('date', debutISO)
+    .lte('date', finISO);
+
+  const overrides = {};
+  if(!error && data){
+    data.forEach(o => { overrides[o.date] = o; });
   }
-  exceptionsActuelles = data || [];
-  renderExceptions();
+
+  renderSemaineJours(debutSemaine, overrides);
 }
 
-function fmtDateFr(d){
-  const [y,m,day] = d.split('-');
-  return `${day}/${m}/${y}`;
-}
+function renderSemaineJours(debutSemaine, overrides){
+  const el = document.getElementById('semaine-jours-list');
+  el.innerHTML = JOURS_SEMAINE.map((j, i) => {
+    const dateObj = new Date(debutSemaine);
+    dateObj.setDate(dateObj.getDate() + i);
+    const dateISO = toISODate(dateObj);
+    const override = overrides[dateISO];
 
-function renderExceptions(){
-  const el = document.getElementById('exceptions-list');
-  if(!exceptionsActuelles.length){
-    el.innerHTML = `<p class="empty-state">Aucune date bloquée à venir.</p>`;
-    return;
-  }
-  el.innerHTML = exceptionsActuelles.map(ex => {
-    const periode = ex.journee_entiere
-      ? 'Journée entière'
-      : `${ex.debut || '?'} — ${ex.fin || '?'}`;
+    const defaut = horairesActuels[j.key] || { ouvert:false };
+    const estOverride = !!override;
+
+    const ouvert = estOverride ? override.ouvert : defaut.ouvert;
+    const debut = estOverride ? (override.debut || '09:00') : (defaut.debut || '09:00');
+    const fin = estOverride ? (override.fin || '18:00') : (defaut.fin || '18:00');
+
     return `
-    <div class="exception-item">
-      <div class="exception-info">
-        <b>${fmtDateFr(ex.date)}</b> — ${periode}
-        ${ex.note ? `<div class="exception-note">${ex.note}</div>` : ''}
+    <div class="jour-row ${estOverride ? 'override' : ''}" data-sem-jour="${j.key}" data-date="${dateISO}">
+      <div class="jour-date">${fmtDateCourt(dateObj)}</div>
+      <div class="jour-nom">${j.label}${estOverride ? '<span class="override-badge">MODIFIÉ</span>' : ''}</div>
+      <label class="jour-toggle">
+        <input type="checkbox" class="sem-ouvert-check" ${ouvert ? 'checked' : ''} onchange="onSemaineJourChange('${dateISO}')">
+        Ouvert
+      </label>
+      <div class="jour-heures" id="sem-heures-${dateISO}" style="${ouvert ? '' : 'display:none'}">
+        <input type="time" id="sem-debut-${dateISO}" value="${debut}" onchange="onSemaineJourChange('${dateISO}')">
+        <span>à</span>
+        <input type="time" id="sem-fin-${dateISO}" value="${fin}" onchange="onSemaineJourChange('${dateISO}')">
       </div>
-      <button class="btn-del-exception" onclick="supprimerException('${ex.id}')">SUPPRIMER</button>
+      <span class="jour-ferme-label" id="sem-ferme-${dateISO}" style="${ouvert ? 'display:none' : ''}">Fermé</span>
+      ${estOverride ? `<button class="btn-reset-jour" onclick="resetJourSemaine('${dateISO}')">Revenir à l'horaire habituel</button>` : ''}
     </div>`;
   }).join('');
 }
 
-async function ajouterException(){
-  const date = document.getElementById('bloc-date').value;
-  if(!date){ await customAlert("Choisis une date."); return; }
-
-  const journeeEntiere = document.getElementById('bloc-journee').checked;
-  const debut = journeeEntiere ? null : (document.getElementById('bloc-debut').value || null);
-  const fin = journeeEntiere ? null : (document.getElementById('bloc-fin').value || null);
-  const note = document.getElementById('bloc-note').value.trim() || null;
-
-  const { error } = await sb.from('planning_exceptions').insert({
-    date, journee_entiere: journeeEntiere, debut, fin, note
-  });
-
-  if(error){ await customAlert("Erreur lors du blocage de la date."); return; }
-
-  document.getElementById('bloc-date').value = '';
-  document.getElementById('bloc-note').value = '';
-  document.getElementById('bloc-journee').checked = true;
-  toggleBlocHeures();
-
-  await loadExceptions();
-  await customAlert("Date bloquée ✓");
+// Quand on coche/décoche "Ouvert" pour un jour de la semaine affichée
+function onSemaineJourChange(dateISO){
+  const check = document.querySelector(`[data-date="${dateISO}"] .sem-ouvert-check`);
+  const ouvert = check.checked;
+  document.getElementById('sem-heures-'+dateISO).style.display = ouvert ? 'flex' : 'none';
+  document.getElementById('sem-ferme-'+dateISO).style.display = ouvert ? 'none' : 'inline';
+  sauvegarderOverride(dateISO);
 }
 
-async function supprimerException(id){
-  const ok = await customConfirm("Débloquer cette date ?");
+async function sauvegarderOverride(dateISO){
+  const check = document.querySelector(`[data-date="${dateISO}"] .sem-ouvert-check`);
+  const ouvert = check.checked;
+  const debut = ouvert ? (document.getElementById('sem-debut-'+dateISO).value || '09:00') : null;
+  const fin = ouvert ? (document.getElementById('sem-fin-'+dateISO).value || '18:00') : null;
+
+  const { error } = await sb.from('planning_overrides')
+    .upsert({ date: dateISO, ouvert, debut, fin, updated_at: new Date().toISOString() }, { onConflict: 'date' });
+
+  if(error){ await customAlert("Erreur lors de l'enregistrement de ce jour."); return; }
+  await loadSemaine();
+}
+
+async function resetJourSemaine(dateISO){
+  const ok = await customConfirm("Revenir à l'horaire habituel pour ce jour ?");
   if(!ok) return;
-  const { error } = await sb.from('planning_exceptions').delete().eq('id', id);
+  const { error } = await sb.from('planning_overrides').delete().eq('date', dateISO);
   if(error){ await customAlert("Erreur lors de la suppression."); return; }
-  await loadExceptions();
+  await loadSemaine();
 }
 
 sb.auth.getSession().then(({data})=>{
