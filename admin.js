@@ -49,6 +49,22 @@ function customConfirm(message){
   });
 }
 
+/* ---------- Petit message discret (toast) ---------- */
+function showToast(message){
+  let toast = document.getElementById('toast-msg');
+  if(toast) toast.remove();
+  toast = document.createElement('div');
+  toast.id = 'toast-msg';
+  toast.textContent = message;
+  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111;color:#f5f0e7;padding:11px 22px;border-radius:999px;font-family:"DM Sans",sans-serif;font-size:12.5px;letter-spacing:.03em;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .25s ease';
+  document.body.appendChild(toast);
+  requestAnimationFrame(()=>{ toast.style.opacity = '1'; });
+  setTimeout(()=>{
+    toast.style.opacity = '0';
+    setTimeout(()=> toast.remove(), 300);
+  }, 1800);
+}
+
 async function adminLogin(){
   loginErr.textContent = "";
   const email = document.getElementById('admin-email').value.trim();
@@ -240,14 +256,10 @@ const JOURS_SEMAINE = [
   { key: 'dimanche', label: 'Dimanche' }
 ];
 
-let planningCharge = false;
 let horairesActuels = {};
 
 async function loadPlanning(){
-  if(!planningCharge){
-    await loadHoraires();
-    planningCharge = true;
-  }
+  await loadHoraires();
   await loadSemaine();
 }
 
@@ -428,6 +440,7 @@ async function sauvegarderOverride(dateISO){
     .upsert({ date: dateISO, ouvert, debut, fin, updated_at: new Date().toISOString() }, { onConflict: 'date' });
 
   if(error){ await customAlert("Erreur lors de l'enregistrement de ce jour."); return; }
+  showToast("Jour mis à jour ✓");
   await loadSemaine();
 }
 
