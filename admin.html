@@ -18,7 +18,6 @@
   .admin-top h1{font-family:"Playfair Display",serif;font-size:24px}
   .admin-top button{background:transparent;border:1px solid var(--ink);padding:8px 14px;border-radius:6px;font-size:11.5px;letter-spacing:.06em;cursor:pointer}
 
-  /* Onglets principaux : Réservations / Planning */
   .main-tabs{display:flex;gap:10px;margin-bottom:28px;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .main-tab-btn{padding:12px 4px;margin-right:18px;border:0;background:transparent;font-size:13px;letter-spacing:.05em;cursor:pointer;color:#888;border-bottom:2px solid transparent;font-weight:500}
   .main-tab-btn.active{color:var(--ink);border-bottom-color:var(--ink)}
@@ -58,18 +57,19 @@
 
   .btn-save-planning{margin-top:18px;padding:12px 22px;background:var(--ink);color:var(--cream);border:0;border-radius:6px;font-size:12px;letter-spacing:.06em;cursor:pointer}
 
-  .bloc-form{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
-  .bloc-form input[type=date],.bloc-form input[type=time],.bloc-form input[type=text]{padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff}
-  .bloc-form input[type=text]{flex:1;min-width:160px}
-  .bloc-check{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;white-space:nowrap}
-  #bloc-heures{display:flex;align-items:center;gap:8px}
-  .bloc-form button{padding:10px 18px;background:var(--ink);color:var(--cream);border:0;border-radius:6px;font-size:11.5px;letter-spacing:.05em;cursor:pointer}
+  /* Vue par semaine */
+  .semaine-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:10px;flex-wrap:wrap}
+  .semaine-nav-btn{padding:9px 14px;border:1px solid var(--ink);background:transparent;border-radius:6px;cursor:pointer;font-size:13px}
+  .semaine-nav-btn:hover{background:var(--ink);color:var(--cream)}
+  .semaine-label{font-family:"Playfair Display",serif;font-size:17px;text-align:center;flex:1}
+  .semaine-label small{display:block;font-family:"DM Sans",sans-serif;font-size:11px;color:#999;font-weight:400;margin-top:2px}
+  .semaine-today-btn{font-size:11px;color:#888;text-decoration:underline;cursor:pointer;background:none;border:0;padding:0}
 
-  .exception-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:#fff;flex-wrap:wrap;gap:8px}
-  .exception-info{font-size:13px}
-  .exception-info b{font-weight:600}
-  .exception-note{color:#888;font-size:12px;font-style:italic}
-  .btn-del-exception{background:transparent;border:1px solid #b23b3b;color:#b23b3b;padding:7px 12px;border-radius:6px;font-size:11px;letter-spacing:.04em;cursor:pointer}
+  .jour-row.override .jour-nom{color:#8a5a1e}
+  .jour-row.override{background:#faf3e2;margin:0 -10px;padding:10px;border-radius:6px;border-bottom:1px solid #ecdfc0}
+  .jour-date{font-size:11px;color:#999;width:60px}
+  .override-badge{font-size:9.5px;letter-spacing:.05em;background:#f0e6c9;color:#6b5a1e;padding:2px 7px;border-radius:999px;margin-left:6px}
+  .btn-reset-jour{font-size:11px;color:#b23b3b;text-decoration:underline;background:none;border:0;cursor:pointer;padding:0;white-space:nowrap}
 
   .modal-overlay{position:fixed;inset:0;background:rgba(20,15,10,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
   .modal-box{background:var(--cream);border-radius:14px;padding:30px 28px;max-width:360px;width:100%;text-align:center;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.25)}
@@ -111,27 +111,32 @@
   </div>
 
   <div id="planning-view" style="display:none">
+
     <div class="planning-card">
       <h2 class="planning-title">Horaires récurrents</h2>
-      <p class="planning-sub">Ces horaires s'appliquent chaque semaine, sauf les jours bloqués ci-dessous.</p>
+      <p class="planning-sub">C'est la base appliquée par défaut chaque semaine. Utilise la vue par semaine ci-dessous pour ajuster un jour précis.</p>
       <div id="jours-list"></div>
       <button class="btn-save-planning" onclick="saveHoraires()">ENREGISTRER LES HORAIRES</button>
     </div>
 
     <div class="planning-card">
-      <h2 class="planning-title">Bloquer une date</h2>
-      <p class="planning-sub">Vacances, jour off, absence ponctuelle — la date ne sera plus proposée à la réservation.</p>
-      <div class="bloc-form">
-        <input type="date" id="bloc-date">
-        <label class="bloc-check"><input type="checkbox" id="bloc-journee" checked onchange="toggleBlocHeures()"> Journée entière</label>
-        <div id="bloc-heures" style="display:none">
-          <input type="time" id="bloc-debut"> <span>à</span> <input type="time" id="bloc-fin">
+      <h2 class="planning-title">Vue par semaine</h2>
+      <p class="planning-sub">Modifie les horaires d'un jour précis (ex : fermer un mardi, changer une heure) sans toucher à tes horaires récurrents.</p>
+
+      <div class="semaine-nav">
+        <button class="semaine-nav-btn" onclick="semainePrecedente()">← Semaine préc.</button>
+        <div class="semaine-label" id="semaine-label">
+          — <small id="semaine-sublabel"></small>
         </div>
-        <input type="text" id="bloc-note" placeholder="Note (optionnel)">
-        <button onclick="ajouterException()">BLOQUER CETTE DATE</button>
+        <button class="semaine-nav-btn" onclick="semaineSuivante()">Semaine suiv. →</button>
       </div>
-      <div id="exceptions-list"></div>
+      <div style="text-align:center;margin-bottom:18px">
+        <button class="semaine-today-btn" onclick="allerSemaineActuelle()">Revenir à cette semaine</button>
+      </div>
+
+      <div id="semaine-jours-list"></div>
     </div>
+
   </div>
 </div>
 
