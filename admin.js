@@ -1,147 +1,444 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SWOO HAIR — Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<style>
-  body{background:var(--paper2)}
-  .admin-wrap{max-width:900px;margin:0 auto;padding:40px 5% 80px}
-  .admin-login{max-width:340px;margin:80px auto;background:var(--cream);border:1px solid var(--line);padding:32px;border-radius:12px}
-  .admin-login h1{font-family:"Playfair Display",serif;font-size:22px;margin-bottom:18px}
-  .admin-login input{width:100%;padding:12px;margin-bottom:12px;border:1px solid var(--line);border-radius:6px;font-size:14px}
-  .admin-login button{width:100%;padding:13px;background:var(--ink);color:var(--cream);border:0;border-radius:6px;font-size:13px;letter-spacing:.06em;cursor:pointer}
-  .admin-err{color:#b23b3b;font-size:12.5px;margin-top:8px}
-  .admin-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-  .admin-top h1{font-family:"Playfair Display",serif;font-size:24px}
-  .admin-top button{background:transparent;border:1px solid var(--ink);padding:8px 14px;border-radius:6px;font-size:11.5px;letter-spacing:.06em;cursor:pointer}
+const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lanltcnlza2d4aHNvamVzY3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODY2OTcsImV4cCI6MjEwMjA2MjY5N30.rBggWuPcL5155_MnrnVG9Gk0BnzA6R89l-4sXeGxvqM";
 
-  .main-tabs{display:flex;gap:10px;margin-bottom:28px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-  .main-tab-btn{padding:12px 4px;margin-right:18px;border:0;background:transparent;font-size:13px;letter-spacing:.05em;cursor:pointer;color:#888;border-bottom:2px solid transparent;font-weight:500}
-  .main-tab-btn.active{color:var(--ink);border-bottom-color:var(--ink)}
+/* ★★★ EmailJS ★★★ */
+const EMAILJS_PUBLIC_KEY = "N3e331Qf_9wb8UEtE";
+const EMAILJS_SERVICE_ID = "service_ehfhwi8";
+const EMAILJS_TEMPLATE_CONFIRM = "template_r3jmb3f";
+const EMAILJS_TEMPLATE_DECLINE = "template_4y1bw8a";
 
-  .tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
-  .tab-btn{padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:var(--cream);font-size:12px;letter-spacing:.04em;cursor:pointer;color:#555}
-  .tab-btn.active{background:var(--ink);color:var(--cream);border-color:var(--ink)}
-  .tab-count{opacity:.7;font-size:11px}
+emailjs.init(EMAILJS_PUBLIC_KEY);
 
-  .req-card{background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
-  .req-info .rname{font-family:"Playfair Display",serif;font-size:17px;margin-bottom:8px}
-  .req-row{font-size:13px;margin:3px 0;color:#333}
-  .req-row b{color:#111;font-weight:600}
-  .req-badge{display:inline-block;font-size:10px;letter-spacing:.06em;padding:3px 9px;border-radius:999px;margin-left:8px;vertical-align:middle}
-  .req-badge.pending{background:#f0e6c9;color:#6b5a1e}
-  .req-badge.confirmed{background:#d9ecdd;color:#2f6b3f}
-  .req-badge.declined{background:#f5d9d9;color:#8a2f2f}
-  .req-actions{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
-  .req-actions button{padding:10px 16px;border-radius:6px;font-size:11.5px;letter-spacing:.05em;cursor:pointer;border:1px solid var(--ink)}
-  .btn-accept{background:var(--ink);color:var(--cream)}
-  .btn-decline{background:transparent;color:var(--ink)}
-  .btn-delete{background:transparent;color:#b23b3b;border-color:#b23b3b}
-  .empty-state{text-align:center;color:#888;padding:60px 0;font-size:14px}
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  /* Planning */
-  .planning-card{background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:24px 22px;margin-bottom:22px}
-  .planning-title{font-family:"Playfair Display",serif;font-size:19px;margin-bottom:4px}
-  .planning-sub{font-size:12.5px;color:#777;margin-bottom:18px}
+const loginView = document.getElementById('login-view');
+const dashView = document.getElementById('dash-view');
+const reqList = document.getElementById('req-list');
+const loginErr = document.getElementById('login-err');
 
-  .jour-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
-  .jour-row:last-child{border-bottom:0}
-  .jour-nom{width:100px;font-size:13.5px;font-weight:600}
-  .jour-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555}
-  .jour-heures{display:flex;align-items:center;gap:8px;font-size:13px}
-  .jour-heures input[type=time]{padding:7px 8px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff}
-  .jour-ferme-label{font-size:12.5px;color:#999;font-style:italic}
+let allReservations = [];
+let currentTab = 'pending';
 
-  .btn-save-planning{margin-top:18px;padding:12px 22px;background:var(--ink);color:var(--cream);border:0;border-radius:6px;font-size:12px;letter-spacing:.06em;cursor:pointer}
-
-  /* Vue par semaine */
-  .semaine-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:10px;flex-wrap:wrap}
-  .semaine-nav-btn{padding:9px 14px;border:1px solid var(--ink);background:transparent;border-radius:6px;cursor:pointer;font-size:13px}
-  .semaine-nav-btn:hover{background:var(--ink);color:var(--cream)}
-  .semaine-label{font-family:"Playfair Display",serif;font-size:17px;text-align:center;flex:1}
-  .semaine-label small{display:block;font-family:"DM Sans",sans-serif;font-size:11px;color:#999;font-weight:400;margin-top:2px}
-  .semaine-today-btn{font-size:11px;color:#888;text-decoration:underline;cursor:pointer;background:none;border:0;padding:0}
-
-  .jour-row.override .jour-nom{color:#8a5a1e}
-  .jour-row.override{background:#faf3e2;margin:0 -10px;padding:10px;border-radius:6px;border-bottom:1px solid #ecdfc0}
-  .jour-date{font-size:11px;color:#999;width:60px}
-  .override-badge{font-size:9.5px;letter-spacing:.05em;background:#f0e6c9;color:#6b5a1e;padding:2px 7px;border-radius:999px;margin-left:6px}
-  .btn-reset-jour{font-size:11px;color:#b23b3b;text-decoration:underline;background:none;border:0;cursor:pointer;padding:0;white-space:nowrap}
-
-  .modal-overlay{position:fixed;inset:0;background:rgba(20,15,10,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
-  .modal-box{background:var(--cream);border-radius:14px;padding:30px 28px;max-width:360px;width:100%;text-align:center;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.25)}
-  .modal-box p{font-family:"Playfair Display",serif;font-size:17px;margin-bottom:24px;color:#222;line-height:1.4}
-  .modal-actions{display:flex;gap:10px;justify-content:center}
-  .modal-actions button{padding:11px 20px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid var(--ink);flex:1}
-  .modal-btn-primary{background:var(--ink);color:var(--cream)}
-  .modal-btn-danger{background:#b23b3b;color:#fff;border-color:#b23b3b}
-  .modal-btn-secondary{background:transparent;color:var(--ink)}
-</style>
-</head>
-<body>
-<div id="login-view" class="admin-login">
-  <h1>SWOO HAIR — Admin</h1>
-  <input type="email" id="admin-email" placeholder="ton e-mail">
-  <input type="password" id="admin-pass" placeholder="mot de passe">
-  <button onclick="adminLogin()">SE CONNECTER</button>
-  <p class="admin-err" id="login-err"></p>
-</div>
-
-<div id="dash-view" class="admin-wrap" style="display:none">
-  <div class="admin-top">
-    <h1>Administration</h1>
-    <button onclick="adminLogout()">SE DÉCONNECTER</button>
-  </div>
-
-  <div class="main-tabs">
-    <button class="main-tab-btn active" data-view="reservations" onclick="switchMainView('reservations')">RÉSERVATIONS</button>
-    <button class="main-tab-btn" data-view="planning" onclick="switchMainView('planning')">GÉRER MON PLANNING</button>
-  </div>
-
-  <div id="reservations-view">
-    <div class="tabs">
-      <button class="tab-btn active" data-status="pending" onclick="switchTab('pending')">EN ATTENTE <span class="tab-count" id="count-pending"></span></button>
-      <button class="tab-btn" data-status="confirmed" onclick="switchTab('confirmed')">ACCEPTÉES <span class="tab-count" id="count-confirmed"></span></button>
-      <button class="tab-btn" data-status="declined" onclick="switchTab('declined')">REFUSÉES <span class="tab-count" id="count-declined"></span></button>
-    </div>
-    <div id="req-list"></div>
-  </div>
-
-  <div id="planning-view" style="display:none">
-
-    <div class="planning-card">
-      <h2 class="planning-title">Horaires récurrents</h2>
-      <p class="planning-sub">C'est la base appliquée par défaut chaque semaine. Utilise la vue par semaine ci-dessous pour ajuster un jour précis.</p>
-      <div id="jours-list"></div>
-      <button class="btn-save-planning" onclick="saveHoraires()">ENREGISTRER LES HORAIRES</button>
-    </div>
-
-    <div class="planning-card">
-      <h2 class="planning-title">Vue par semaine</h2>
-      <p class="planning-sub">Modifie les horaires d'un jour précis (ex : fermer un mardi, changer une heure) sans toucher à tes horaires récurrents.</p>
-
-      <div class="semaine-nav">
-        <button class="semaine-nav-btn" onclick="semainePrecedente()">← Semaine préc.</button>
-        <div class="semaine-label" id="semaine-label">
-          — <small id="semaine-sublabel"></small>
-        </div>
-        <button class="semaine-nav-btn" onclick="semaineSuivante()">Semaine suiv. →</button>
+/* ---------- Popups stylées ---------- */
+function customAlert(message){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,15,10,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+    overlay.innerHTML = `<div style="background:#f5f0e7;border-radius:14px;padding:30px 28px;max-width:360px;width:100%;text-align:center;border:1px solid #ddd;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif">
+      <p style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:22px;color:#222;line-height:1.4">${message}</p>
+      <button id="ca-ok" style="padding:11px 24px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:#111;color:#f5f0e7">OK</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#ca-ok').onclick = ()=>{ overlay.remove(); resolve(); };
+  });
+}
+function customConfirm(message){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,15,10,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+    overlay.innerHTML = `<div style="background:#f5f0e7;border-radius:14px;padding:30px 28px;max-width:400px;width:100%;text-align:center;border:1px solid #ddd;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif">
+      <p style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:24px;color:#222;line-height:1.5;white-space:pre-line">${message}</p>
+      <div style="display:flex;gap:10px">
+        <button id="cc-cancel" style="flex:1;padding:12px 16px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:transparent;color:#111">ANNULER</button>
+        <button id="cc-ok" style="flex:1;padding:12px 16px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:#111;color:#f5f0e7">JE CONFIRME</button>
       </div>
-      <div style="text-align:center;margin-bottom:18px">
-        <button class="semaine-today-btn" onclick="allerSemaineActuelle()">Revenir à cette semaine</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#cc-cancel').onclick = ()=>{ overlay.remove(); resolve(false); };
+    overlay.querySelector('#cc-ok').onclick = ()=>{ overlay.remove(); resolve(true); };
+  });
+}
+
+async function adminLogin(){
+  loginErr.textContent = "";
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-pass').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ loginErr.textContent = "Identifiants incorrects."; return; }
+  showDashboard();
+}
+async function adminLogout(){
+  await sb.auth.signOut();
+  dashView.style.display = 'none';
+  loginView.style.display = 'block';
+}
+
+async function showDashboard(){
+  loginView.style.display = 'none';
+  dashView.style.display = 'block';
+  await loadRequests();
+}
+
+/* ---------- Navigation entre vues principales ---------- */
+function switchMainView(view){
+  document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.getElementById('reservations-view').style.display = view === 'reservations' ? 'block' : 'none';
+  document.getElementById('planning-view').style.display = view === 'planning' ? 'block' : 'none';
+  if(view === 'planning'){
+    loadPlanning();
+  }
+}
+
+function switchTab(status){
+  currentTab = status;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.status === status));
+  renderList();
+}
+
+async function loadRequests(){
+  const { data, error } = await sb.from('reservations').select('*').order('created_at', { ascending:false });
+  if(error){ reqList.innerHTML = `<p class="empty-state">Erreur de chargement.</p>`; return; }
+  allReservations = data || [];
+  updateCounts();
+  renderList();
+}
+
+function updateCounts(){
+  ['pending','confirmed','declined'].forEach(s=>{
+    const el = document.getElementById('count-'+s);
+    if(el) el.textContent = '(' + allReservations.filter(r => (r.status||'pending') === s).length + ')';
+  });
+}
+
+function fmtEuro(v){
+  if(v === null || v === undefined || v === '') return '—';
+  return String(v).includes('€') ? v : v + '€';
+}
+
+function renderList(){
+  const filtered = allReservations.filter(r => (r.status || 'pending') === currentTab);
+
+  if(!filtered.length){
+    reqList.innerHTML = `<p class="empty-state">Aucune demande dans cette catégorie.</p>`;
+    return;
+  }
+
+  reqList.innerHTML = filtered.map(r => {
+    let captureLink = '';
+    if(r.capture_paiement){
+      const { data: urlData } = sb.storage.from('captures-paiement').getPublicUrl(r.capture_paiement);
+      captureLink = `<p class="req-row"><a href="${urlData.publicUrl}" target="_blank" style="text-decoration:underline">📎 Voir la capture de paiement</a></p>`;
+    }
+    let etatLink = '';
+    if(r.photo_etat_perruque){
+      const { data: urlData2 } = sb.storage.from('etat-perruque').getPublicUrl(r.photo_etat_perruque);
+      etatLink = `<p class="req-row"><a href="${urlData2.publicUrl}" target="_blank" style="text-decoration:underline">💇 Voir l'état de la perruque</a></p>`;
+    }
+    return `
+    <div class="req-card">
+      <div class="req-info">
+        <p class="rname">${r.nom || '—'}, ${r.prestation || '—'} <span class="req-badge ${r.status||'pending'}">${(r.status||'pending').toUpperCase()}</span></p>
+        <p class="req-row"><b>Date :</b> ${r.date_rdv || '—'}</p>
+        <p class="req-row"><b>Heure :</b> ${r.heure_rdv || 'Dépôt (pas d\'heure)'}</p>
+        <p class="req-row"><b>Prix :</b> ${fmtEuro(r.service_price)} &nbsp; <b>Acompte :</b> ${fmtEuro(r.acompte)}${r.supplement_total ? ` &nbsp; <b>Suppléments :</b> +${r.supplement_total}€` : ''}</p>
+        <p class="req-row"><b>Email :</b> ${r.email || '—'}</p>
+        <p class="req-row"><b>Téléphone :</b> ${r.telephone || '—'} &nbsp; <b>Instagram :</b> ${r.instagram || '—'}</p>
+        ${r.note ? `<p class="req-row"><b>Note :</b> ${r.note}</p>` : ''}
+        ${captureLink}
+        ${etatLink}
       </div>
-
-      <div id="semaine-jours-list"></div>
+      <div class="req-actions">
+        ${r.status === 'pending' || !r.status ? `
+          <button class="btn-accept" onclick="respond('${r.id}','confirmed')">ACCEPTER</button>
+          <button class="btn-decline" onclick="respond('${r.id}','declined')">REFUSER</button>` : ''}
+        <button class="btn-delete" onclick="removeReservation('${r.id}')">SUPPRIMER</button>
+      </div>
     </div>
+  `;
+  }).join('');
+}
 
-  </div>
-</div>
+/* ---------- Bloc d'instructions perruque (vide si non concerné) ---------- */
+function construireInstructionsPP(r){
+  const estPerruque = r.prestation && (
+    r.prestation.toLowerCase().includes('pose') ||
+    r.prestation.toLowerCase().includes('perruque') ||
+    r.prestation.toLowerCase().includes('custom') ||
+    r.prestation.toLowerCase().includes('lace') ||
+    r.prestation.toLowerCase().includes('wig')
+  );
+  if(!estPerruque) return '';
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="admin.js"></script>
-</body>
-</html>
+  const avecRepose = r.note && r.note.toLowerCase().includes('avec repose');
+
+  let txt = `\nImportant avant ton rendez-vous perruque :\n`;
+  txt += `• Ta perruque doit être propre et déposée avant le rendez-vous (délai selon la prestation, en général 2 à 6 jours avant).\n`;
+  txt += avecRepose
+    ? `• Ta réservation inclut l'option "avec repose".\n`
+    : `• Si ta perruque a déjà été posée avant, il s'agit d'une "repose" — préviens-nous si c'est le cas, un supplément peut s'appliquer.\n`;
+  txt += `• Un dépôt la veille du rendez-vous entraîne un supplément de 10€, une customisation demandée le jour même entraîne un supplément de 15€.\n`;
+  txt += `• Merci d'avoir joint une photo de l'état actuel de ta perruque — si ce n'est pas encore fait, envoie-la nous sur Instagram avant le rendez-vous.\n`;
+
+  return txt;
+}
+
+async function envoyerEmail(r, status){
+  if(status === 'confirmed'){
+    return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONFIRM, {
+      nom: r.nom || '',
+      prestation: r.prestation || '',
+      date_rdv: r.date_rdv || '',
+      heure_rdv: r.heure_rdv || (r.duree_minutes === null ? "dépôt, pas d'heure" : ''),
+      instructions_pp: construireInstructionsPP(r),
+      to_email: r.email
+    });
+  } else {
+    return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_DECLINE, {
+      nom: r.nom || '',
+      prestation: r.prestation || '',
+      date_rdv: r.date_rdv || '',
+      heure_rdv: r.heure_rdv || '',
+      to_email: r.email
+    });
+  }
+}
+
+async function respond(id, status){
+  const { error } = await sb.from('reservations').update({ status }).eq('id', id);
+  if(error){ await customAlert("Erreur lors de la mise à jour."); return; }
+
+  const r = allReservations.find(x => String(x.id) === String(id));
+  let emailOk = false;
+  if(r){
+    try{
+      await envoyerEmail(r, status);
+      emailOk = true;
+    }catch(e){
+      console.error("Email non envoyé :", e);
+      await customAlert("Statut mis à jour, mais l'e-mail n'a pas pu être envoyé — vérifie tes identifiants EmailJS.");
+    }
+  }
+
+  await loadRequests();
+
+  if(emailOk){
+    const label = status === 'confirmed' ? 'acceptée' : 'refusée';
+    await customAlert(`Demande ${label} ✓ — l'e-mail a bien été envoyé à la cliente.`);
+  }
+}
+
+async function removeReservation(id){
+  const ok = await customConfirm("Supprimer définitivement cette demande ?");
+  if(!ok) return;
+  const { error } = await sb.from('reservations').delete().eq('id', id);
+  if(error){ await customAlert("Erreur lors de la suppression."); return; }
+  await loadRequests();
+  await customAlert("Demande supprimée ✓");
+}
+
+/* ============================================================
+   GESTION DU PLANNING
+   ============================================================ */
+
+const JOURS_SEMAINE = [
+  { key: 'lundi',    label: 'Lundi' },
+  { key: 'mardi',    label: 'Mardi' },
+  { key: 'mercredi', label: 'Mercredi' },
+  { key: 'jeudi',    label: 'Jeudi' },
+  { key: 'vendredi', label: 'Vendredi' },
+  { key: 'samedi',   label: 'Samedi' },
+  { key: 'dimanche', label: 'Dimanche' }
+];
+
+let planningCharge = false;
+let horairesActuels = {};
+
+async function loadPlanning(){
+  if(!planningCharge){
+    await loadHoraires();
+    planningCharge = true;
+  }
+  await loadSemaine();
+}
+
+async function loadHoraires(){
+  const { data, error } = await sb.from('planning_config').select('*').eq('id', 1).maybeSingle();
+  if(error || !data){
+    await customAlert("Impossible de charger les horaires. Vérifie que la table planning_config existe.");
+    return;
+  }
+  horairesActuels = data.jours || {};
+  renderJoursList();
+}
+
+function renderJoursList(){
+  const el = document.getElementById('jours-list');
+  el.innerHTML = JOURS_SEMAINE.map(j => {
+    const cfg = horairesActuels[j.key] || { ouvert:false };
+    const debut = cfg.debut || '09:00';
+    const fin = cfg.fin || '18:00';
+    return `
+    <div class="jour-row" data-jour="${j.key}">
+      <div class="jour-nom">${j.label}</div>
+      <label class="jour-toggle">
+        <input type="checkbox" class="jour-ouvert-check" ${cfg.ouvert ? 'checked' : ''} onchange="toggleJourOuvert('${j.key}', this.checked)">
+        Ouvert
+      </label>
+      <div class="jour-heures" id="heures-${j.key}" style="${cfg.ouvert ? '' : 'display:none'}">
+        <input type="time" id="debut-${j.key}" value="${debut}">
+        <span>à</span>
+        <input type="time" id="fin-${j.key}" value="${fin}">
+      </div>
+      <span class="jour-ferme-label" id="ferme-${j.key}" style="${cfg.ouvert ? 'display:none' : ''}">Fermé</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleJourOuvert(jourKey, ouvert){
+  document.getElementById('heures-'+jourKey).style.display = ouvert ? 'flex' : 'none';
+  document.getElementById('ferme-'+jourKey).style.display = ouvert ? 'none' : 'inline';
+}
+
+async function saveHoraires(){
+  const nouveauxJours = {};
+  JOURS_SEMAINE.forEach(j => {
+    const ouvert = document.querySelector(`#jours-list [data-jour="${j.key}"] .jour-ouvert-check`).checked;
+    if(ouvert){
+      nouveauxJours[j.key] = {
+        ouvert: true,
+        debut: document.getElementById('debut-'+j.key).value || '09:00',
+        fin: document.getElementById('fin-'+j.key).value || '18:00'
+      };
+    } else {
+      nouveauxJours[j.key] = { ouvert: false };
+    }
+  });
+
+  const { error } = await sb.from('planning_config')
+    .update({ jours: nouveauxJours, updated_at: new Date().toISOString() })
+    .eq('id', 1);
+
+  if(error){ await customAlert("Erreur lors de l'enregistrement des horaires."); return; }
+  horairesActuels = nouveauxJours;
+  await customAlert("Horaires enregistrés ✓");
+  await loadSemaine(); // les jours sans override affichés reflètent le nouveau défaut
+}
+
+/* ---------- Vue par semaine ---------- */
+
+// Lundi de la semaine actuellement affichée
+let semaineAffichee = getLundiDeLaSemaine(new Date());
+
+function getLundiDeLaSemaine(d){
+  const date = new Date(d);
+  const jour = date.getDay(); // 0 = dimanche
+  const diff = jour === 0 ? -6 : 1 - jour;
+  date.setDate(date.getDate() + diff);
+  date.setHours(0,0,0,0);
+  return date;
+}
+
+function toISODate(d){
+  return d.toISOString().slice(0,10);
+}
+
+function fmtDateCourt(d){
+  return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+}
+
+function semainePrecedente(){
+  semaineAffichee.setDate(semaineAffichee.getDate() - 7);
+  loadSemaine();
+}
+function semaineSuivante(){
+  semaineAffichee.setDate(semaineAffichee.getDate() + 7);
+  loadSemaine();
+}
+function allerSemaineActuelle(){
+  semaineAffichee = getLundiDeLaSemaine(new Date());
+  loadSemaine();
+}
+
+async function loadSemaine(){
+  const debutSemaine = new Date(semaineAffichee);
+  const finSemaine = new Date(semaineAffichee);
+  finSemaine.setDate(finSemaine.getDate() + 6);
+
+  document.getElementById('semaine-sublabel').textContent =
+    `${fmtDateCourt(debutSemaine)} — ${fmtDateCourt(finSemaine)}`;
+  document.getElementById('semaine-label').firstChild.textContent =
+    `Semaine du ${debutSemaine.getDate()} au ${finSemaine.getDate()}`;
+
+  const debutISO = toISODate(debutSemaine);
+  const finISO = toISODate(finSemaine);
+
+  const { data, error } = await sb.from('planning_overrides')
+    .select('*')
+    .gte('date', debutISO)
+    .lte('date', finISO);
+
+  const overrides = {};
+  if(!error && data){
+    data.forEach(o => { overrides[o.date] = o; });
+  }
+
+  renderSemaineJours(debutSemaine, overrides);
+}
+
+function renderSemaineJours(debutSemaine, overrides){
+  const el = document.getElementById('semaine-jours-list');
+  el.innerHTML = JOURS_SEMAINE.map((j, i) => {
+    const dateObj = new Date(debutSemaine);
+    dateObj.setDate(dateObj.getDate() + i);
+    const dateISO = toISODate(dateObj);
+    const override = overrides[dateISO];
+
+    const defaut = horairesActuels[j.key] || { ouvert:false };
+    const estOverride = !!override;
+
+    const ouvert = estOverride ? override.ouvert : defaut.ouvert;
+    const debut = estOverride ? (override.debut || '09:00') : (defaut.debut || '09:00');
+    const fin = estOverride ? (override.fin || '18:00') : (defaut.fin || '18:00');
+
+    return `
+    <div class="jour-row ${estOverride ? 'override' : ''}" data-sem-jour="${j.key}" data-date="${dateISO}">
+      <div class="jour-date">${fmtDateCourt(dateObj)}</div>
+      <div class="jour-nom">${j.label}${estOverride ? '<span class="override-badge">MODIFIÉ</span>' : ''}</div>
+      <label class="jour-toggle">
+        <input type="checkbox" class="sem-ouvert-check" ${ouvert ? 'checked' : ''} onchange="onSemaineJourChange('${dateISO}')">
+        Ouvert
+      </label>
+      <div class="jour-heures" id="sem-heures-${dateISO}" style="${ouvert ? '' : 'display:none'}">
+        <input type="time" id="sem-debut-${dateISO}" value="${debut}" onchange="onSemaineJourChange('${dateISO}')">
+        <span>à</span>
+        <input type="time" id="sem-fin-${dateISO}" value="${fin}" onchange="onSemaineJourChange('${dateISO}')">
+      </div>
+      <span class="jour-ferme-label" id="sem-ferme-${dateISO}" style="${ouvert ? 'display:none' : ''}">Fermé</span>
+      ${estOverride ? `<button class="btn-reset-jour" onclick="resetJourSemaine('${dateISO}')">Revenir à l'horaire habituel</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// Quand on coche/décoche "Ouvert" pour un jour de la semaine affichée
+function onSemaineJourChange(dateISO){
+  const check = document.querySelector(`[data-date="${dateISO}"] .sem-ouvert-check`);
+  const ouvert = check.checked;
+  document.getElementById('sem-heures-'+dateISO).style.display = ouvert ? 'flex' : 'none';
+  document.getElementById('sem-ferme-'+dateISO).style.display = ouvert ? 'none' : 'inline';
+  sauvegarderOverride(dateISO);
+}
+
+async function sauvegarderOverride(dateISO){
+  const check = document.querySelector(`[data-date="${dateISO}"] .sem-ouvert-check`);
+  const ouvert = check.checked;
+  const debut = ouvert ? (document.getElementById('sem-debut-'+dateISO).value || '09:00') : null;
+  const fin = ouvert ? (document.getElementById('sem-fin-'+dateISO).value || '18:00') : null;
+
+  const { error } = await sb.from('planning_overrides')
+    .upsert({ date: dateISO, ouvert, debut, fin, updated_at: new Date().toISOString() }, { onConflict: 'date' });
+
+  if(error){ await customAlert("Erreur lors de l'enregistrement de ce jour."); return; }
+  await loadSemaine();
+}
+
+async function resetJourSemaine(dateISO){
+  const ok = await customConfirm("Revenir à l'horaire habituel pour ce jour ?");
+  if(!ok) return;
+  const { error } = await sb.from('planning_overrides').delete().eq('date', dateISO);
+  if(error){ await customAlert("Erreur lors de la suppression."); return; }
+  await loadSemaine();
+}
+
+sb.auth.getSession().then(({data})=>{
+  if(data.session) showDashboard();
+});
