@@ -1,7 +1,7 @@
 /* ============================================================
    ★ À MODIFIER avant mise en ligne
    ============================================================ */
-const PAYPAL_HANDLE = "swoohair";
+const PAYPAL_HANDLE = "holaswoo";
 const IG_HANDLE = "swoo_hair";
 
 const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
