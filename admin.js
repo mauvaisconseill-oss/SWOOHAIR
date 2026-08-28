@@ -324,8 +324,6 @@ function getOrCreateDateStatusEl(){
     el = document.createElement('p');
     el.id = 'date-status-msg';
     el.className = 'slot-note';
-    el.style.marginTop = '8px';
-    el.style.cssText += 'font-size:9.5px !important; margin-top:8px !important;';
     document.getElementById('date_rdv').insertAdjacentElement('afterend', el);
   }
   return el;
