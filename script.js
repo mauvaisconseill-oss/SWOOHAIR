@@ -62,6 +62,53 @@ const observer = new IntersectionObserver(entries=>{
 document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 
 /* ============================================================
+   PLANNING — lecture des horaires définis dans l'admin
+   ============================================================ */
+const JOURS_KEYS = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi']; // getDay() : 0 = dimanche
+
+let horairesRecurrents = null; // { lundi:{ouvert,debut,fin}, ... }
+let overridesParDate = {};     // { '2026-09-15': {ouvert,debut,fin}, ... }
+let planningChargePromise = null;
+
+function chargerPlanning(){
+  if(planningChargePromise) return planningChargePromise;
+  if(!supabaseClient){ planningChargePromise = Promise.resolve(); return planningChargePromise; }
+
+  planningChargePromise = (async ()=>{
+    try{
+      const { data: cfg } = await supabaseClient.from('planning_config').select('*').eq('id',1).maybeSingle();
+      horairesRecurrents = (cfg && cfg.jours) ? cfg.jours : null;
+    }catch(e){ console.warn('planning_config indisponible', e); }
+
+    try{
+      const { data: overrides } = await supabaseClient.from('planning_overrides').select('*');
+      (overrides||[]).forEach(o=>{ overridesParDate[o.date] = o; });
+    }catch(e){ console.warn('planning_overrides indisponible', e); }
+  })();
+
+  return planningChargePromise;
+}
+chargerPlanning();
+
+/* Retourne { ouvert, debut, fin } pour une date donnée (YYYY-MM-DD),
+   en tenant compte d'abord des overrides ponctuels, sinon des horaires récurrents.
+   Si rien n'est configuré (tables absentes), retourne un fallback ouvert 11h-19h
+   pour ne jamais bloquer les réservations en cas de problème de configuration. */
+function getHorairesDuJour(dateISO){
+  if(overridesParDate[dateISO]){
+    const o = overridesParDate[dateISO];
+    return { ouvert: !!o.ouvert, debut: o.debut || '11:00', fin: o.fin || '19:00' };
+  }
+  if(horairesRecurrents){
+    const jsDate = new Date(dateISO+'T00:00:00');
+    const key = JOURS_KEYS[jsDate.getDay()];
+    const cfg = horairesRecurrents[key];
+    if(cfg) return { ouvert: !!cfg.ouvert, debut: cfg.debut || '11:00', fin: cfg.fin || '19:00' };
+  }
+  return { ouvert: true, debut: '11:00', fin: '19:00' };
+}
+
+/* ============================================================
    CATALOGUE — avec description détaillée par prestation
    ============================================================ */
 const CATALOG = {
@@ -182,7 +229,6 @@ function selectFormationFixe(name, price, dep, note, heureDebut, heureFin, jours
 
 /* ---------- Ticket / sélection ---------- */
 let current = null;
-const OUVERTURE = 11*60, FERMETURE = 19*60;
 
 function selectService(item, note){
   current = { ...item, note };
@@ -213,7 +259,10 @@ function renderTicket(){
   toggleFormFields();
   refreshTicket();
   updateTicketTotal();
-  if(current.type === 'slot') refreshHeureAvailability();
+
+  // Redemande la vérification si une date est déjà choisie
+  const dateVal = document.getElementById('date_rdv').value;
+  if(dateVal) verifierDateEtRafraichirCreneaux();
 }
 
 /* Met à jour le prix affiché dans le ticket EN DIRECT avec les suppléments cochés */
@@ -268,15 +317,65 @@ function refreshTicket(){
     : (h || (current && current.type === 'depot' ? "Dépôt (pas d'heure)" : 'à choisir'));
 }
 
+/* ---------- Message "jour fermé" affiché sous le champ date ---------- */
+function getOrCreateDateStatusEl(){
+  let el = document.getElementById('date-status-msg');
+  if(!el){
+    el = document.createElement('p');
+    el.id = 'date-status-msg';
+    el.className = 'slot-note';
+    el.style.marginTop = '-8px';
+    document.getElementById('date_rdv').insertAdjacentElement('afterend', el);
+  }
+  return el;
+}
+
+function fmtDateFr(dateISO){
+  return new Date(dateISO+'T00:00:00').toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+}
+
 /* ---------- Créneaux dynamiques ---------- */
 const heureSel = document.getElementById('heure_rdv');
 function toMin(hhmm){ const [h,m] = hhmm.split(':').map(Number); return h*60+(m||0); }
 function toHHMM(min){ const h = Math.floor(min/60), m = min%60; return `${h}:${m.toString().padStart(2,'0')}`; }
 
-async function refreshHeureAvailability(){
+async function verifierDateEtRafraichirCreneaux(){
+  const d = document.getElementById('date_rdv').value;
+  const statusEl = getOrCreateDateStatusEl();
+  heureSel.innerHTML = '<option value="">Choisir un créneau</option>';
+  statusEl.textContent = '';
+  statusEl.style.color = '';
+
+  if(!d) return;
+
+  await chargerPlanning();
+  const horaires = getHorairesDuJour(d);
+
+  if(!horaires.ouvert){
+    statusEl.textContent = `Fermé le ${fmtDateFr(d)} — merci de choisir une autre date.`;
+    statusEl.style.color = '#b23b3b';
+    document.getElementById('date_rdv').value = '';
+    refreshTicket();
+    return;
+  }
+
+  if(current && current.type === 'slot'){
+    await refreshHeureAvailability(horaires);
+  }
+  refreshTicket();
+}
+document.getElementById('date_rdv').addEventListener('change', verifierDateEtRafraichirCreneaux);
+
+async function refreshHeureAvailability(horairesDuJour){
   heureSel.innerHTML = '<option value="">Choisir un créneau</option>';
   const d = document.getElementById('date_rdv').value;
   if(!d || !current || current.type !== 'slot' || !supabaseClient) return;
+
+  const horaires = horairesDuJour || getHorairesDuJour(d);
+  if(!horaires.ouvert) return;
+
+  const OUVERTURE = toMin(horaires.debut);
+  const FERMETURE = toMin(horaires.fin);
 
   const { data: pris, error } = await supabaseClient
     .from('reservations').select('heure_rdv,duree_minutes')
@@ -305,7 +404,6 @@ async function refreshHeureAvailability(){
     heureSel.appendChild(opt);
   }
 }
-document.getElementById('date_rdv').addEventListener('change', refreshHeureAvailability);
 
 /* ---------- Suppléments ---------- */
 function calculerSupplements(){
@@ -385,6 +483,17 @@ async function submitReservation(){
     statusEl.textContent = "Merci de remplir au minimum : date, nom et e-mail.";
     statusEl.style.color = "#b23b3b"; return;
   }
+
+  // Re-vérification finale du jour (au cas où le planning aurait changé entretemps)
+  if(current.type !== 'devis'){
+    await chargerPlanning();
+    const horaires = getHorairesDuJour(date);
+    if(!horaires.ouvert){
+      statusEl.textContent = `Fermé le ${fmtDateFr(date)} — merci de choisir une autre date.`;
+      statusEl.style.color = "#b23b3b"; return;
+    }
+  }
+
   if(current.type === 'slot' && !heure){
     statusEl.textContent = "Merci de choisir un créneau horaire.";
     statusEl.style.color = "#b23b3b"; return;
