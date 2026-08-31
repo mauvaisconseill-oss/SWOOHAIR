@@ -248,9 +248,10 @@ form label.field{display:block;font-size:10.5px;letter-spacing:.1em;text-transfo
 .lc-qr{border-radius:6px;width:64px;height:64px;display:block;margin-top:10px;border:1px solid var(--line)}
 .loy-card.back{background:var(--cream);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .lc-back-label{font-size:11px;letter-spacing:.16em;padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid var(--line);color:var(--ink)}
-.lc-stamps{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:22px;flex-wrap:wrap}
-.lc-stamps span{width:20px;height:20px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none}
-.lc-stamps span.reward{width:32px;height:32px;border-color:var(--ink);font-size:8px;letter-spacing:.01em;color:var(--ink);font-weight:500}
+.lc-stamps{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:22px}
+.lc-stamps-row{display:flex;align-items:center;justify-content:center;gap:8px}
+.lc-stamps span{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none}
+.lc-stamps span.reward{width:34px;height:34px;border-color:var(--ink);font-size:8.5px;letter-spacing:.01em;color:var(--ink);font-weight:500}
 .lc-back-foot p{font-size:8.5px;letter-spacing:.08em;color:var(--muted);margin:3px 0}
 .loy-note{max-width:420px}
 @media(min-width:900px){
