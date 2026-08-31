@@ -1,633 +1,350 @@
-/* ============================================================
-   ★ À MODIFIER avant mise en ligne
-   ============================================================ */
-const PAYPAL_HANDLE = "holaswoo";
-const IG_HANDLE = "swoo_hair";
+*{box-sizing:border-box;margin:0;padding:0}
+:root{color-scheme:light;--cream:#ffffff;--paper2:#eeeeee;--ink:#111111;--line:#dcdcdc;--muted:#6f6f6f;--muted-dark:#a8a8a8;--tan:#eeeeee;--tan-deep:#2b2b2b}
+html{scroll-behavior:smooth;background:var(--cream)}
+body{background:var(--cream);color:var(--ink);font-family:"DM Sans",Arial,sans-serif;overflow-x:hidden;font-size:15px;line-height:1.6}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+img{max-width:100%;display:block}
+.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.eyebrow:after{content:"";display:block;width:20px;height:1px;background:currentColor;margin-top:12px}
+h1,h2,h3{font-family:"Playfair Display",serif;font-weight:400}
+h2 em,h1 em,h3 em{font-style:italic}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 
-const SUPABASE_URL = "https://mejymryskgxhsojescxf.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lanltcnlza2d4aHNvamVzY3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODY2OTcsImV4cCI6MjEwMjA2MjY5N30.rBggWuPcL5155_MnrnVG9Gk0BnzA6R89l-4sXeGxvqM";
-const supabaseClient = (SUPABASE_URL.includes("TON-PROJET"))
-  ? null
-  : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* ===== TOPBAR ===== */
+.topbar{background:var(--ink);color:var(--cream);display:flex;justify-content:space-between;align-items:center;padding:8px 5%;font-size:9px;letter-spacing:.1em;gap:8px;overflow:hidden}
+.topbar span:nth-child(2){display:none}
 
-const SUPPLEMENT_REPOSE = 0; // ★ remplace par le vrai montant
+/* ===== HEADER ===== */
+.header{height:66px;border-bottom:1px solid var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 5%;position:sticky;top:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(6px)}
+.logo{font-family:"Playfair Display",serif;font-size:24px;letter-spacing:.14em}
+.logo em{font-style:italic}
+.nav{display:none}
+.menu-btn{background:none;border:0;width:38px;height:26px}
+.menu-btn i{display:block;width:30px;height:1px;background:var(--ink);margin:7px 0}
 
-const SUPPLEMENTS = {
-  horsCreneaux:    { label: "Hors créneaux (avant 11h / après 18h)", montant: 10 },
-  stylingCoupe:    { label: "Styling / Coupe carré",                  montant: 10 },
-  depotVeille:     { label: "Dépôt de perruque la veille du rdv",     montant: 10 },
-  customJourMeme:  { label: "Customisation le jour même",             montant: 15 }
-};
+/* ===== MOBILE MENU ===== */
+.mobile-menu{position:fixed;inset:66px 0 auto 0;background:var(--cream);z-index:39;padding:30px 6%;display:flex;flex-direction:column;gap:20px;transform:translateY(-150%);transition:.4s;border-bottom:1px solid var(--ink);max-height:calc(100vh - 66px);overflow-y:auto}
+.mobile-menu.open{transform:translateY(0)}
+.mobile-menu a{font-family:"Playfair Display",serif;font-size:22px}
+.mobile-menu .mobile-book{font-family:"DM Sans";font-size:11px;letter-spacing:.1em;background:var(--ink);color:var(--cream);padding:15px;width:max-content}
 
-/* ---------- Popups ---------- */
-function customAlert(message){
-  return new Promise(resolve=>{
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,15,10,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
-    overlay.innerHTML = `<div style="background:#f5f0e7;border-radius:14px;padding:30px 28px;max-width:360px;width:100%;text-align:center;border:1px solid #ddd;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif">
-      <p style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:22px;color:#222;line-height:1.4">${message}</p>
-      <button id="ca-ok" style="padding:11px 24px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:#111;color:#f5f0e7">OK</button>
-    </div>`;
-    document.body.appendChild(overlay);
-    overlay.querySelector('#ca-ok').onclick = ()=>{ overlay.remove(); resolve(); };
-  });
+/* ===== HERO ===== */
+.hero{position:relative;min-height:78vh;background:
+  radial-gradient(120% 90% at 15% 0%, #2a2a2a 0%, var(--ink) 55%),
+  var(--ink);
+  color:var(--cream);overflow:hidden;padding:64px 6% 40px;display:flex;flex-direction:column;justify-content:flex-end}
+.hero:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg, rgba(255,255,255,.02) 0 2px, transparent 2px 26px);pointer-events:none}
+.hero-number{position:absolute;top:8%;right:4%;font-family:"Playfair Display",serif;font-style:italic;font-size:clamp(90px,32vw,150px);line-height:1;opacity:.9;color:var(--cream)}
+.hero-number small{display:block;width:60px;height:1px;background:var(--cream);margin-top:6px}
+.hero-content{position:relative;z-index:2}
+.hero h1{font-size:clamp(42px,15vw,60px);letter-spacing:.1em;line-height:1;margin-top:4px}
+.hero h1 em{color:var(--cream)}
+.hero h2{font-size:16px;letter-spacing:.24em;margin-top:8px}
+.hero p{margin-top:22px;font-size:13.5px;max-width:340px;color:var(--cream)}
+.hero-actions{display:flex;flex-direction:column;gap:16px;align-items:flex-start;margin-top:28px}
+.outline-btn{border:1px solid var(--cream);padding:15px 24px;font-size:11.5px;letter-spacing:.1em}
+.arrow-link{font-size:11.5px;letter-spacing:.08em;display:inline-flex;gap:14px;align-items:center}
+.arrow-link b{font-size:18px;font-weight:400}
+
+/* ===== MARQUEE ===== */
+.marquee,.dark-marquee{height:46px;overflow:hidden;white-space:nowrap;border-bottom:1px solid var(--line);display:flex;align-items:center}
+.marquee-track{display:flex;align-items:center;gap:22px;width:max-content;animation:scroll 24s linear infinite;font-family:"Playfair Display",serif;letter-spacing:.14em;font-size:12px}
+.marquee-track b{font-family:Arial;font-weight:400;color:var(--muted)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+.dark-marquee{background:var(--ink);color:var(--cream);border:0}
+.dark-marquee .marquee-track b{color:var(--muted-dark)}
+
+/* ===== ABOUT ===== */
+.about{display:block;background:var(--ink)}
+.about-copy{background:var(--ink);color:var(--cream);padding:52px 6%;max-width:640px}
+.about-copy h2{font-size:34px;line-height:1.08;margin:14px 0 18px}
+.about-copy p{max-width:400px;font-size:13.5px;line-height:1.85;margin-bottom:26px;color:var(--cream)}
+.facts{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.fact{display:flex;gap:10px;font-size:12.5px;border-top:1px solid #3a3a3a;padding-top:10px}
+.fact b{color:var(--cream);min-width:78px;font-weight:500}
+/* ===== PORTFOLIO ===== */
+.portfolio{background:var(--paper2);padding:0 0 56px}
+.portfolio .p-head{padding:56px 6% 0}
+.portfolio .eyebrow{color:var(--tan-deep)}
+.portfolio h2{font-size:34px;margin:14px 0 10px}
+.portfolio .lede{font-size:13px;line-height:1.7;max-width:380px;color:#4a4a4a;margin-bottom:8px}
+.folio-marquee{height:38px;overflow:hidden;white-space:nowrap;display:flex;align-items:center;border-top:1px solid #d6d6d6;border-bottom:1px solid #d6d6d6;margin-top:22px}
+.folio-marquee .marquee-track{display:flex;align-items:center;gap:20px;width:max-content;animation:scroll 22s linear infinite;font-size:10.5px;letter-spacing:.18em;color:var(--tan-deep)}
+.folio-marquee .marquee-track b{font-family:Arial;font-weight:400;color:#b9b9b9}
+.folio-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px;margin-top:2px}
+.folio-grid .plate{position:relative;overflow:hidden;background:#dcdcdc}
+.folio-grid .plate.tall{grid-row:span 2}
+.folio-grid .ph-wrap{aspect-ratio:3/4;overflow:hidden}
+.folio-grid .plate.tall .ph-wrap{aspect-ratio:3/5;height:100%}
+
+@media(max-width:600px){
+  .folio-grid .plate.tall{grid-row:span 1;grid-column:span 2}
+  .folio-grid .plate.tall .ph-wrap{aspect-ratio:16/10;height:auto}
+  .folio-grid .plate.tall .ph-wrap img{object-position:50% 20%}
 }
-function customConfirm(message){
-  return new Promise(resolve=>{
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,15,10,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
-    overlay.innerHTML = `<div style="background:#f5f0e7;border-radius:14px;padding:30px 28px;max-width:400px;width:100%;text-align:center;border:1px solid #ddd;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif">
-      <p style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:24px;color:#222;line-height:1.5;white-space:pre-line">${message}</p>
-      <div style="display:flex;gap:10px">
-        <button id="cc-cancel" style="flex:1;padding:12px 16px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:transparent;color:#111">ANNULER</button>
-        <button id="cc-ok" style="flex:1;padding:12px 16px;border-radius:7px;font-size:11.5px;letter-spacing:.06em;cursor:pointer;border:1px solid #111;background:#111;color:#f5f0e7">JE CONFIRME</button>
-      </div>
-    </div>`;
-    document.body.appendChild(overlay);
-    overlay.querySelector('#cc-cancel').onclick = ()=>{ overlay.remove(); resolve(false); };
-    overlay.querySelector('#cc-ok').onclick = ()=>{ overlay.remove(); resolve(true); };
-  });
+.folio-grid .ph-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .7s cubic-bezier(.16,1,.3,1);filter:saturate(1.02)}
+.folio-grid .plate:hover .ph-wrap img{transform:scale(1.06)}
+.folio-grid .plate:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(17,17,17,.55) 0%,rgba(17,17,17,0) 32%);opacity:0;transition:opacity .4s ease;pointer-events:none}
+.folio-grid .plate:hover:after{opacity:1}
+.folio-grid .fcap{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px;opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .4s ease}
+.folio-grid .plate:hover .fcap{opacity:1;transform:none}
+.folio-grid .fcap .no{font-family:"Playfair Display",serif;font-style:italic;color:var(--cream);font-size:14px}
+.folio-grid .fcap .lbl{color:#e7e2d6;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+@media(min-width:900px){
+  .portfolio .p-head{padding:76px 6% 0}
+  .folio-grid{grid-template-columns:1.3fr 1fr 1fr;max-width:1100px;margin-left:auto;margin-right:auto;gap:3px;padding:3px}
 }
-
-/* ---------- Mobile menu ---------- */
-const menuBtn = document.querySelector('.menu-btn');
-const mobileMenu = document.querySelector('.mobile-menu');
-menuBtn.addEventListener('click',()=>mobileMenu.classList.toggle('open'));
-document.querySelectorAll('.mobile-menu a').forEach(a=>a.addEventListener('click',()=>mobileMenu.classList.remove('open')));
-
-/* ---------- Reveal on scroll ---------- */
-const observer = new IntersectionObserver(entries=>{
-  entries.forEach(entry=>{ if(entry.isIntersecting){ entry.target.classList.add('visible'); observer.unobserve(entry.target); } });
-},{threshold:.1});
-document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
-
-/* ============================================================
-   PLANNING — lecture des horaires définis dans l'admin
-   ============================================================ */
-const JOURS_KEYS = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi']; // getDay() : 0 = dimanche
-
-let horairesRecurrents = null; // { lundi:{ouvert,debut,fin}, ... }
-let overridesParDate = {};     // { '2026-09-15': {ouvert,debut,fin}, ... }
-let planningChargePromise = null;
-
-function chargerPlanning(){
-  if(planningChargePromise) return planningChargePromise;
-  if(!supabaseClient){ planningChargePromise = Promise.resolve(); return planningChargePromise; }
-
-  planningChargePromise = (async ()=>{
-    try{
-      const { data: cfg } = await supabaseClient.from('planning_config').select('*').eq('id',1).maybeSingle();
-      horairesRecurrents = (cfg && cfg.jours) ? cfg.jours : null;
-    }catch(e){ console.warn('planning_config indisponible', e); }
-
-    try{
-      const { data: overrides } = await supabaseClient.from('planning_overrides').select('*');
-      (overrides||[]).forEach(o=>{ overridesParDate[o.date] = o; });
-    }catch(e){ console.warn('planning_overrides indisponible', e); }
-  })();
-
-  return planningChargePromise;
-}
-chargerPlanning();
-
-/* Retourne { ouvert, debut, fin } pour une date donnée (YYYY-MM-DD),
-   en tenant compte d'abord des overrides ponctuels, sinon des horaires récurrents.
-   Si rien n'est configuré (tables absentes), retourne un fallback ouvert 11h-19h
-   pour ne jamais bloquer les réservations en cas de problème de configuration. */
-function getHorairesDuJour(dateISO){
-  if(overridesParDate[dateISO]){
-    const o = overridesParDate[dateISO];
-    return { ouvert: !!o.ouvert, debut: o.debut || '11:00', fin: o.fin || '19:00' };
-  }
-  if(horairesRecurrents){
-    const jsDate = new Date(dateISO+'T00:00:00');
-    const key = JOURS_KEYS[jsDate.getDay()];
-    const cfg = horairesRecurrents[key];
-    if(cfg) return { ouvert: !!cfg.ouvert, debut: cfg.debut || '11:00', fin: cfg.fin || '19:00' };
-  }
-  return { ouvert: true, debut: '11:00', fin: '19:00' };
+@media(hover:none){
+  .folio-grid .plate:after{opacity:1;background:linear-gradient(0deg,rgba(17,17,17,.6) 0%,rgba(17,17,17,0) 40%)}
+  .folio-grid .fcap{opacity:1;transform:none}
 }
 
-/* ============================================================
-   CATALOGUE — avec description détaillée par prestation
-   ============================================================ */
-const CATALOG = {
-  "Barrel Twists":[
-    {name:"Barrel simple", price:"30€", dep:10, duree:150, type:"slot",
-      desc:"Un barrel twist net et soigné, réalisé avec des séparations propres pour un rendu fluide et durable. Une coiffure protectrice élégante, facile à porter au quotidien pendant plusieurs semaines."},
-    {name:"Barrel motif", price:"35€", dep:10, duree:150, type:"slot",
-      desc:"Le barrel twist décliné avec un motif personnalisé pour un rendu plus créatif et unique, tout en gardant une tenue durable et une protection optimale des cheveux."},
-    {name:"Retwist locks avec coupe", price:"45€", dep:10, duree:270, type:"slot",
-      desc:"Rafraîchissement complet de tes locks avec retwist et coupe d'entretien, pour un rendu net et une repousse soignée. Durée variable selon la longueur et l'état des locks (4 à 5h)."},
-    {name:"Flat Twist simple", price:"30€", dep:10, duree:150, type:"slot",
-      desc:"Flat twists plaqués au cuir chevelu pour une finition nette et discrète, idéale au quotidien comme en coiffure protectrice."},
-    {name:"Flat Twist simple modèle", price:"35€", dep:10, duree:150, type:"slot",
-      desc:"Flat twists avec un motif de séparation personnalisé, pour une touche plus originale tout en gardant une tenue nette et confortable."}
-  ],
-  "Nattes":[
-    {name:"Nattes collées wig", price:"10€", dep:10, duree:30, type:"slot",
-      desc:"Préparation des nattes collées avant la pose de ta perruque, pour une base nette et un rendu naturel au niveau du scalp."},
-    {name:"Nattes collées simple", price:"15€", dep:10, duree:30, type:"slot",
-      desc:"Nattage collé simple, propre et confortable, en préparation d'une pose ou pour un usage seul."},
-    {name:"Nattes motif", price:"20€", dep:10, duree:90, type:"slot",
-      desc:"Nattes collées avec motif personnalisé pour un rendu soigné et original, adapté à ton style."}
-  ],
-  "Ponytail":[
-    {name:"Ponytail simple", price:"50€", dep:20, duree:180, type:"slot",
-      desc:"Préparation et lissage des cheveux, plaquage soigné avec une finition nette, réalisation d'une ponytail haute selon le style souhaité, pose de la queue de cheval (colle ou fil selon préférence) et finitions professionnelles (baby hairs, brillance et fixation)."},
-    {name:"Frange / hairstyle", price:"10€", dep:20, duree:30, type:"slot",
-      desc:"Ajout d'une frange ou d'un styling complémentaire à ta ponytail pour personnaliser le rendu final."}
-  ],
-  "Perruque":[
-    {name:"Pose + custom", price:"50€", dep:10, duree:120, type:"slot", needPhoto:true,
-      desc:"Pose complète de ta perruque avec customisation incluse : décoloration des nœuds, découpe de la tulle et floutage de la lace pour un rendu scalp naturel. La perruque doit être déposée propre avant le rendez-vous."},
-    {name:"Pose", price:"40€", dep:10, duree:120, type:"slot", needPhoto:true, hasRepose:true,
-      desc:"Pose soignée de ta perruque avec découpe de la lace et application de la colle, floutage pour un rendu naturel. Option 'avec repose' disponible si ta perruque a déjà été posée précédemment."},
-    {name:"Pose sans colle", price:"30€", dep:10, duree:120, type:"slot", needPhoto:true,
-      desc:"Pose de ta perruque sans colle, une alternative douce et rapide pour un port confortable au quotidien."},
-    {name:"Customisation", price:"25€", dep:10, duree:0, type:"depot", needPhoto:true,
-      desc:"Blanchiment des nœuds et customisation complète de ta perruque pour un rendu scalp naturel. Dépôt requis 3 à 6 jours avant, perruque propre exigée."},
-    {name:"Décoloration des nœuds", price:"15€", dep:10, duree:0, type:"depot", needPhoto:true,
-      desc:"Décoloration des nœuds de ta lace pour un rendu plus naturel au niveau du cuir chevelu. Dépôt requis avant traitement."},
-    {name:"Lavage wig", price:"20€", dep:10, duree:0, type:"depot", needPhoto:true,
-      desc:"Lavage professionnel et soin de ta perruque pour retrouver douceur et brillance."},
-    {name:"Remise à neuf", price:"30€", dep:10, duree:0, type:"depot", needPhoto:true,
-      desc:"Restauration complète de ta perruque abîmée ou usée : lavage, soin et remise en forme pour un rendu comme neuf."},
-    {name:"Changement de lace", price:"25€", dep:10, duree:0, type:"depot", needPhoto:true,
-      desc:"Remplacement de la lace de ta perruque pour prolonger sa durée de vie et retrouver un rendu net."},
-    {name:"Styling / Coupe carré", price:"10€", dep:10, duree:45, type:"slot",
-      desc:"Coupe carré ou styling personnalisé sur ta perruque déjà posée, pour un rendu frais et sur-mesure."},
-    {name:"Confection wig", price:"70€", dep:10, duree:180, type:"slot",
-      desc:"Confection complète d'une perruque sur-mesure selon tes préférences de couleur, longueur et texture."},
-    {name:"Couleur wig", price:"Devis", dep:0, duree:0, type:"devis",
-      desc:"Coloration personnalisée de ta perruque — envoie une photo de ta perruque sur Instagram pour recevoir ton devis avant réservation."}
-  ]
-};
-const NOTES = {
-  "Barrel Twists":"Cheveux lavés 2 à 3 jours avant",
-  "Nattes":"Cheveux lavés 2 à 3 jours avant",
-  "Ponytail":"Cheveux lavés 2 à 3 jours avant",
-  "Perruque":"Perruque propre à déposer avant le rendez-vous (voir détails après sélection)"
-};
+/* ===== SERVICES OVERVIEW ===== */
+.services{padding:56px 6%}
+.services-intro h2{font-size:32px;margin:14px 0 16px}
+.services-intro p{font-size:13.5px;line-height:1.7;max-width:340px;margin-bottom:22px}
+.service-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:30px}
+.service-grid article{padding:22px 16px;border-top:1px solid var(--line);text-align:left}
+.service-grid article:nth-child(-n+2){border-top:1px solid var(--line)}
+.service-icon{font-size:26px;height:40px;font-family:serif;color:var(--tan-deep)}
+.service-grid h3{font-size:11.5px;letter-spacing:.08em;margin-bottom:10px}
+.service-grid p{font-size:12px;line-height:1.6;min-height:56px;color:#4a4a4a}
+.service-grid strong{font-size:11px;font-weight:500;display:block;margin-top:8px;letter-spacing:.05em}
+.service-grid a.card-link{display:block}
 
-Object.keys(CATALOG).forEach(cat=>{
-  const wrap = document.querySelector(`.svc-list[data-cat="${cat}"]`);
-  if(!wrap) return;
-  CATALOG[cat].forEach((item, idx)=>{
-    const row = document.createElement('div');
-    row.className='svc-row-wrap';
-    const dureeTxt = item.type === 'slot' ? ` · ${fmtDuree(item.duree)}` : (item.type === 'depot' ? ' · Dépôt' : '');
-    const descId = `desc-${cat.replace(/\s+/g,'')}-${idx}`;
-    row.innerHTML = `
-      <div class="svc-row">
-        <div class="left">
-          <span class="svc-name">${item.name}</span>
-          <span class="svc-tiny">${(NOTES[cat]||'')}${dureeTxt}</span>
-          ${item.desc ? `<button type="button" class="svc-desc-toggle" data-target="${descId}">Voir la description ↓</button>` : ''}
-        </div>
-        <div class="svc-right">
-          <span class="svc-price">${item.price}</span>
-          <span class="svc-pick">→ RÉSERVER</span>
-        </div>
-      </div>
-      ${item.desc ? `<p class="svc-desc" id="${descId}" style="display:none">${item.desc}</p>` : ''}
-    `;
-    wrap.appendChild(row);
+/* ===== CATALOGUE / PRESTATIONS DETAIL ===== */
+.catalogue{padding:56px 0 10px}
+.cat-block{padding:0 6% 46px}
+.cat-eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--tan-deep);display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.cat-block h2{font-size:30px;margin-bottom:10px}
+.cat-block .lede{font-size:13px;color:#4a4a4a;max-width:420px;margin-bottom:22px;line-height:1.7}
+.svc-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:15px 0;border-top:1px solid var(--line);cursor:pointer}
+.svc-row-wrap:last-child .svc-row{border-bottom:1px solid var(--line)}
+.svc-row .left{display:flex;flex-direction:column}
+.svc-name{font-size:13.5px;letter-spacing:.02em}
+.svc-tiny{font-size:10.5px;color:#8a8377;margin-top:3px}
+.svc-right{display:flex;align-items:center;gap:12px;flex:none}
+.svc-price{font-family:"Playfair Display",serif;font-style:italic;font-size:16px}
+.svc-pick{font-size:9.5px;letter-spacing:.1em;color:var(--tan-deep);white-space:nowrap;opacity:0;transition:opacity .15s ease}
+.svc-row.sel{background:var(--tan);margin:0 -6%;padding:15px 6%}
+.svc-row.sel .svc-pick{opacity:1}
+.svc-row:hover .svc-pick{opacity:1}
 
-    row.querySelector('.svc-row').addEventListener('click', (e)=>{
-      if(e.target.classList.contains('svc-desc-toggle')) return;
-      document.querySelectorAll('.svc-row').forEach(r=>r.classList.remove('sel'));
-      row.querySelector('.svc-row').classList.add('sel');
-      selectService(item, NOTES[cat]||'');
-    });
-
-    const toggle = row.querySelector('.svc-desc-toggle');
-    if(toggle){
-      toggle.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        const p = document.getElementById(descId);
-        const open = p.style.display !== 'none';
-        p.style.display = open ? 'none' : 'block';
-        toggle.textContent = open ? 'Voir la description ↓' : 'Masquer la description ↑';
-      });
-    }
-  });
-});
-
-function fmtDuree(min){
-  if(min < 60) return min+"min";
-  const h = Math.floor(min/60), m = min%60;
-  return m ? `${h}h${m.toString().padStart(2,'0')}` : `${h}h`;
+/* ---- Description dépliable ---- */
+.svc-desc-toggle{
+  background:none;border:0;padding:0;margin-top:4px;
+  font-size:10.5px;letter-spacing:.04em;color:var(--tan-deep);
+  text-decoration:underline;cursor:pointer;display:block;
+}
+.svc-desc{
+  font-size:12px;line-height:1.6;color:#4a4a4a;
+  padding:10px 6% 4px;border-top:1px dashed var(--line);margin-top:0;
 }
 
-/* ---------- Formations à horaires fixes ---------- */
-function selectFormationFixe(name, price, dep, note, heureDebut, heureFin, jours){
-  current = { name, price, dep, note, type:"formation-fixe", heureDebut, heureFin, jours: jours||1, duree: 0 };
-  renderTicket();
-  document.getElementById('reservation').scrollIntoView({behavior:'smooth', block:'start'});
+.formule-block{border:1px solid var(--ink);padding:26px 22px;margin-bottom:16px}
+.formule-block .ftag{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--tan-deep);margin-bottom:8px}
+.formule-block h3{font-size:22px;margin-bottom:6px}
+.formule-block .fprice{font-family:"Playfair Display",serif;font-style:italic;font-size:26px;margin-bottom:14px}
+.formule-block ul{list-style:none;margin-bottom:18px}
+.formule-block li{font-size:12.5px;padding-left:16px;position:relative;margin-bottom:6px;color:#3a3a3a}
+.formule-block li:before{content:"—";position:absolute;left:0;color:var(--tan-deep)}
+.formule-block button{background:var(--ink);color:var(--cream);border:0;padding:13px 20px;font-size:11px;letter-spacing:.1em}
+
+/* training */
+.train-card{border-top:1px solid var(--line);padding:22px 0}
+.train-card:last-child{border-bottom:1px solid var(--line)}
+.train-card .thead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:8px}
+.train-card h3{font-size:18px;line-height:1.25}
+.train-card .tprice{font-family:"Playfair Display",serif;font-style:italic;font-size:17px;white-space:nowrap;color:var(--tan-deep)}
+.train-card p{font-size:12.5px;color:#4a4a4a;margin-bottom:10px;line-height:1.7}
+.train-card .tdep{display:inline-block;font-size:11px;background:var(--tan);padding:6px 10px;margin-bottom:10px}
+.train-card a.tbtn{font-size:11.5px;letter-spacing:.06em;text-decoration:underline;color:var(--tan-deep)}
+.train-card .train-btns{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.train-card button.tbtn-solid{display:block;width:100%;background:var(--ink);color:var(--cream);border:0;padding:13px 16px;font-size:11.5px;letter-spacing:.08em;text-align:center}
+
+/* ===== RESERVATION (dark, newsletter-style) ===== */
+.reservation{background:var(--ink);color:var(--cream);border-top:1px solid #555;padding:52px 6%}
+.reservation .eyebrow{color:var(--tan)}
+.reservation h2{font-size:32px;margin:14px 0 14px}
+.reservation>p.lede{font-size:13px;line-height:1.75;max-width:440px;color:var(--cream);margin-bottom:30px}
+
+.ticket{border:1px solid #555;padding:20px;margin-bottom:26px}
+.ticket-empty{font-size:12.5px;color:#a89e8c;text-align:center;padding:6px 0}
+.ticket-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed #555;padding-bottom:12px;margin-bottom:12px}
+.ticket-head .tname{font-family:"Playfair Display",serif;font-size:18px}
+.ticket-head .tprice{font-family:"Playfair Display",serif;font-style:italic;font-size:16px;color:var(--tan)}
+.ticket-row{display:flex;justify-content:space-between;font-size:11.5px;color:#c9bfa9;padding:5px 0}
+.ticket-row b{color:var(--cream);font-weight:500}
+.ticket-dep{margin-top:12px;border:1px solid var(--tan);padding:11px 13px;font-size:11.5px}
+.ticket-dep b{color:var(--tan);font-size:15px}
+.ticket-policy{font-size:11px;color:#a89e8c;margin-top:10px;line-height:1.6}
+
+form label.field{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tan);margin:16px 0 7px}
+.reservation input,.reservation select,.reservation textarea{width:100%;background:transparent;border:1px solid #666;color:var(--cream);padding:13px 14px;font-size:13.5px;outline:none;font-family:"DM Sans"}
+.reservation input:focus,.reservation select:focus,.reservation textarea:focus{border-color:var(--tan)}
+.reservation textarea{min-height:80px;resize:vertical}
+.reservation option{color:#111}
+.slot-note{font-size:10.5px;color:#a89e8c;margin-top:6px}
+.upload-box{display:block;border:1px dashed var(--tan);padding:14px;text-align:center;font-size:12px;letter-spacing:.05em;margin-top:16px;color:var(--tan)}
+.upload-box input{margin-top:8px;border:none;background:transparent;padding:0;color:var(--cream);font-size:11px}
+.actions{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.btn-pay{display:block;text-align:center;background:var(--tan);color:var(--ink);padding:15px;font-size:12.5px;letter-spacing:.08em}
+.btn-solid-2{display:block;width:100%;text-align:center;background:var(--cream);color:var(--ink);border:0;padding:15px;font-size:12.5px;letter-spacing:.08em;cursor:pointer}
+.btn-solid-2:disabled{opacity:.5;cursor:default}
+.btn-ghost2{display:block;text-align:center;background:transparent;border:1px solid var(--cream);color:var(--cream);padding:13px;font-size:12px;letter-spacing:.06em}
+.btn-send{display:block;text-align:center;background:var(--cream);color:var(--ink);padding:14px;font-size:12.5px;letter-spacing:.08em}
+
+/* ---- Checkboxes suppléments / repose, bien visibles ---- */
+.reservation input[type="checkbox"]{
+  width:18px;height:18px;accent-color:var(--tan);cursor:pointer;flex-shrink:0;
 }
 
-/* ---------- Ticket / sélection ---------- */
-let current = null;
+/* ===== AVIS ===== */
+.avis{padding:56px 6%}
+.avis h2{font-size:32px;margin:14px 0 18px}
+.rate-summary{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--ink);padding:16px 18px;margin-bottom:18px}
+.rate-summary .big{font-family:"Playfair Display",serif;font-style:italic;font-size:30px}
+.rate-summary .stars{color:var(--tan-deep);letter-spacing:1px;font-size:13px}
+.rate-summary .cnt{font-size:11.5px;color:#4a4a4a}
+.letter{border-top:1px solid var(--line);padding:18px 0}
+.letter:last-child{border-bottom:1px solid var(--line)}
+.letter .top{display:flex;justify-content:space-between;margin-bottom:6px}
+.letter .name{font-family:"Playfair Display",serif;font-size:15px}
+.letter .stars{color:var(--tan-deep);font-size:12px;letter-spacing:1px}
+.letter .txt{font-size:13px;font-style:italic;color:#3a3a3a}
+.letter .svc-tag{display:inline-block;margin-top:8px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tan-deep)}
+.rate-input{display:flex;gap:6px;margin:4px 0 4px}
+.rate-input span{font-size:24px;color:#e2d7bd;cursor:pointer}
+.rate-input span.on{color:var(--tan-deep)}
+.avis input,.avis textarea{width:100%;border:1px solid var(--line);padding:13px 14px;font-size:13.5px;outline:none;font-family:"DM Sans";background:#fff;margin-top:6px}
+.avis textarea{min-height:80px;resize:vertical}
+.avis label.field{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tan-deep);margin:16px 0 4px}
+.avis .btn-submit{margin-top:16px;background:var(--ink);color:var(--cream);border:0;padding:14px;font-size:12px;letter-spacing:.08em;width:100%}
 
-function selectService(item, note){
-  current = { ...item, note };
-  renderTicket();
-  document.getElementById('reservation').scrollIntoView({behavior:'smooth', block:'start'});
+/* ===== POLICIES ===== */
+.policies{padding:10px 6% 56px}
+.policies h2{font-size:28px;margin:14px 0 20px}
+.pol{border-top:1px solid var(--line);padding:18px 0}
+.pol:last-child{border-bottom:1px solid var(--line)}
+.pol h4{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--tan-deep);margin-bottom:8px}
+.pol p{font-size:12.5px;color:#3a3a3a;margin-bottom:6px;line-height:1.65}
+.pol p:last-child{margin-bottom:0}
+
+/* ===== FOOTER ===== */
+/* ===== FIDÉLITÉ ===== */
+.loyalty{padding:10px 6% 56px}
+.loyalty-head h2{font-size:28px;margin:14px 0 12px;line-height:1.15}
+.loyalty-head h2 em{font-style:italic}
+.loyalty-head .lede{font-size:13px;line-height:1.7;color:#4a4a4a;max-width:420px;margin-bottom:28px}
+.card-pair{display:flex;flex-direction:column;gap:18px;max-width:340px}
+.loy-card{aspect-ratio:1.586/1;border-radius:14px;padding:26px 24px;position:relative;overflow:hidden;border:1px solid var(--line)}
+.loy-card.front{background:var(--cream);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center}
+.lc-brand-block{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:8px}
+.lc-brand{font-family:"Playfair Display",serif;font-size:34px;letter-spacing:.03em;color:var(--ink)}
+.lc-rule{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.35em;color:var(--ink)}
+.lc-rule span{width:26px;height:1px;background:var(--line)}
+.lc-tag{font-size:9.5px;letter-spacing:.16em;color:var(--muted);margin-top:4px}
+.lc-qr{border-radius:6px;width:64px;height:64px;display:block;margin-top:10px;border:1px solid var(--line)}
+.loy-card.back{background:var(--cream);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.lc-back-label{font-size:11px;letter-spacing:.16em;padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid var(--line);color:var(--ink)}
+.lc-stamps{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:22px;flex-wrap:wrap}
+.lc-stamps span{width:20px;height:20px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none}
+.lc-stamps span.reward{width:32px;height:32px;border-color:var(--ink);font-size:8px;letter-spacing:.01em;color:var(--ink);font-weight:500}
+.lc-back-foot p{font-size:8.5px;letter-spacing:.08em;color:var(--muted);margin:3px 0}
+.loy-note{max-width:420px}
+@media(min-width:900px){
+  .loyalty{padding:20px 6% 72px}
+  .card-pair{flex-direction:row;max-width:none}
+  .loy-card{width:300px;flex:none}
 }
 
-function prixNumerique(str){
-  const n = parseFloat(String(str).replace('€','').replace(',','.'));
-  return isNaN(n) ? 0 : n;
+footer{background:var(--ink);color:var(--cream);border-top:1px solid #555;padding:44px 6%;display:flex;flex-direction:column;gap:26px}
+.footer-logo{font-family:"Playfair Display",serif;font-size:26px}
+.footer-logo em{font-style:italic;color:var(--tan)}
+footer .fcol a{display:block;font-size:11px;letter-spacing:.08em;margin:0 0 12px;color:var(--cream)}
+.footer-social{display:flex;gap:16px;font-size:16px}
+footer small{font-size:9px;letter-spacing:.12em;color:#8a8377;display:block;padding-top:16px;border-top:1px solid #3a3a3a}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ===== DESKTOP ===== */
+@media(min-width:900px){
+  .topbar span:nth-child(2){display:inline}
+  .header{padding:0 3.5%}
+  .nav{display:flex;align-items:center;gap:28px;font-size:11.5px;letter-spacing:.06em}
+  .nav a.active{border-bottom:1px solid;padding-bottom:6px}
+  .nav .booking{background:var(--ink);color:var(--cream);padding:14px 20px}
+  .menu-btn{display:none}
+  .hero{padding:0 6.5%;min-height:640px;justify-content:center}
+  .hero-content{max-width:640px}
+  .about-copy{padding:76px 6%;max-width:600px}
+  .services{padding:72px 6%;display:grid;grid-template-columns:30% 70%;gap:5%}
+  .services-intro{padding-top:4px}
+  .service-grid{grid-template-columns:repeat(4,1fr)}
+  .service-grid article{border-top:0;border-left:1px solid var(--line);padding:10px 22px}
+  .cat-block{padding:0 6% 54px;display:grid;grid-template-columns:30% 70%;gap:6%}
+  .cat-head{grid-column:1}
+  .cat-list{grid-column:2}
+  .reservation{padding:66px 6%;display:grid;grid-template-columns:40% 60%;gap:6%;align-items:start}
+  .avis{padding:70px 6%}
+  footer{flex-direction:row;flex-wrap:wrap;padding:48px 6%}
+  .footer-logo{width:100%}
+  footer small{width:100%}
+}
+/* ---- Titres éditoriaux façon "BIENVENUE" ---- */
+.editorial-title{
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  font-weight:400;
+  font-size:clamp(28px,6vw,44px);
 }
 
-function renderTicket(){
-  document.getElementById('ticket-empty').style.display='none';
-  document.getElementById('ticket-filled').style.display='block';
-  document.getElementById('t-detail').textContent = current.note || '—';
-  document.getElementById('t-dep').textContent = current.dep+'€';
-
-  const btn = document.getElementById('paypal-btn');
-  if(current.type === 'devis'){
-    btn.href = `https://instagram.com/${IG_HANDLE}`;
-    btn.textContent = `ENVOIE TA DEMANDE DE DEVIS SUR INSTAGRAM`;
-  } else {
-    btn.href = `https://paypal.me/${PAYPAL_HANDLE}/${current.dep}`;
-    btn.textContent = `PAYER L'ACOMPTE DE ${current.dep}€ VIA PAYPAL`;
-  }
-
-  toggleFormFields();
-  refreshTicket();
-  updateTicketTotal();
-
-  // Redemande la vérification si une date est déjà choisie
-  const dateVal = document.getElementById('date_rdv').value;
-  if(dateVal) verifierDateEtRafraichirCreneaux();
+/* ---- Mot en script cursif façon "Policy" ---- */
+.script-accent{
+  font-family:'Parisienne', cursive;
+  font-style:normal;
+  font-size:1.5em;
+  letter-spacing:0;
+  display:inline-block;
+  line-height:1;
+  vertical-align:middle;
 }
-
-/* Met à jour le prix affiché dans le ticket EN DIRECT avec les suppléments cochés */
-function updateTicketTotal(){
-  if(!current) return;
-  const base = prixNumerique(current.price);
-  const { total: suppTotal } = calculerSupplements();
-  const finalPrice = base + suppTotal;
-  const nameEl = document.getElementById('t-name');
-  const priceEl = document.getElementById('t-price');
-  nameEl.textContent = current.name;
-  if(current.type === 'devis'){
-    priceEl.textContent = 'Sur devis';
-  } else if(suppTotal > 0){
-    priceEl.textContent = `${current.price} + ${suppTotal}€ = ${finalPrice}€`;
-  } else {
-    priceEl.textContent = current.price;
-  }
+.hero-photo{
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
-
-/* Écoute les cases suppléments/repose pour tout recalculer en direct */
-document.addEventListener('change', (e)=>{
-  if(e.target.id && (e.target.id.startsWith('supp-') || e.target.id === 'repose-checkbox')){
-    updateTicketTotal();
-  }
-});
-
-function toggleFormFields(){
-  const heureLabel = document.querySelector('label[for="heure_rdv"]') || document.getElementById('heure_rdv').previousElementSibling;
-  const heureSelect = document.getElementById('heure_rdv');
-  const reposeBox = document.getElementById('repose-box');
-  const photoBox = document.getElementById('photo-etat-box');
-  const suppBox = document.getElementById('supplements-box');
-
-  const showHeure = current.type === 'slot';
-  heureSelect.style.display = showHeure ? 'block' : 'none';
-  if(heureLabel) heureLabel.style.display = showHeure ? 'block' : 'none';
-
-  if(reposeBox) reposeBox.style.display = current.hasRepose ? 'block' : 'none';
-  if(photoBox) photoBox.style.display = current.needPhoto ? 'block' : 'none';
-  if(suppBox) suppBox.style.display = (current.type === 'slot' || current.type === 'depot') ? 'block' : 'none';
-
-  document.getElementById('date_rdv').style.display = current.type === 'devis' ? 'none' : 'block';
+.hero-photo img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
-
-function refreshTicket(){
-  const d = document.getElementById('date_rdv').value;
-  const h = document.getElementById('heure_rdv').value;
-  document.getElementById('t-date').textContent = d ? new Date(d).toLocaleDateString('fr-FR') : 'à choisir';
-  document.getElementById('t-heure').textContent = current && current.type === 'formation-fixe'
-    ? `${current.heureDebut} – ${current.heureFin}`
-    : (h || (current && current.type === 'depot' ? "Dépôt (pas d'heure)" : 'à choisir'));
+.hero-photo::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(10,10,10,.92) 0%, rgba(10,10,10,.8) 35%, rgba(10,10,10,.45) 65%, rgba(10,10,10,.15) 100%);
 }
-
-/* ---------- Message "jour fermé" affiché sous le champ date ---------- */
-function getOrCreateDateStatusEl(){
-  let el = document.getElementById('date-status-msg');
-  if(!el){
-    el = document.createElement('p');
-    el.id = 'date-status-msg';
-    el.className = 'slot-note';
-    document.getElementById('date_rdv').insertAdjacentElement('afterend', el);
-  }
-  return el;
+.hero-photo-tag{
+  position: absolute;
+  right: 24px;
+  bottom: 20px;
+  z-index: 1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--cream);
 }
-
-function fmtDateFr(dateISO){
-  return new Date(dateISO+'T00:00:00').toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+.hero-content, .hero-number{
+  position: relative;
+  z-index: 1;
 }
-
-/* ---------- Créneaux dynamiques ---------- */
-const heureSel = document.getElementById('heure_rdv');
-function toMin(hhmm){ const [h,m] = hhmm.split(':').map(Number); return h*60+(m||0); }
-function toHHMM(min){ const h = Math.floor(min/60), m = min%60; return `${h}:${m.toString().padStart(2,'0')}`; }
-
-async function verifierDateEtRafraichirCreneaux(){
-  const d = document.getElementById('date_rdv').value;
-  const statusEl = getOrCreateDateStatusEl();
-  heureSel.innerHTML = '<option value="">Choisir un créneau</option>';
-  statusEl.textContent = '';
-  statusEl.style.color = '';
-
-  if(!d) return;
-
-  await chargerPlanning();
-  const horaires = getHorairesDuJour(d);
-
-  if(!horaires.ouvert){
-    statusEl.textContent = `Fermé le ${fmtDateFr(d)} — merci de choisir une autre date.`;
-    statusEl.style.color = '#b23b3b';
-    document.getElementById('date_rdv').value = '';
-    refreshTicket();
-    return;
-  }
-
-  if(current && current.type === 'slot'){
-    await refreshHeureAvailability(horaires);
-  }
-  refreshTicket();
-}
-document.getElementById('date_rdv').addEventListener('change', verifierDateEtRafraichirCreneaux);
-
-async function refreshHeureAvailability(horairesDuJour){
-  heureSel.innerHTML = '<option value="">Choisir un créneau</option>';
-  const d = document.getElementById('date_rdv').value;
-  if(!d || !current || current.type !== 'slot' || !supabaseClient) return;
-
-  const horaires = horairesDuJour || getHorairesDuJour(d);
-  if(!horaires.ouvert) return;
-
-  const OUVERTURE = toMin(horaires.debut);
-  const FERMETURE = toMin(horaires.fin);
-
-  const { data: pris, error } = await supabaseClient
-    .from('reservations').select('heure_rdv,duree_minutes')
-    .eq('date_rdv', d).in('status', ['pending','confirmed']);
-  if(error){ console.error(error); return; }
-
-  const occupes = (pris||[]).filter(r=>r.heure_rdv).map(r=>{
-    const debut = toMin(r.heure_rdv);
-    return [debut, debut + (r.duree_minutes||60)];
-  });
-
-  for(let m = OUVERTURE; m + current.duree <= FERMETURE; m += current.duree){
-    const finSlot = m + current.duree;
-    const conflit = occupes.some(([od, of_]) => m < of_ && finSlot > od);
-    if(!conflit){
-      const opt = document.createElement('option');
-      opt.value = toHHMM(m);
-     opt.textContent = `${toHHMM(m)} – ${toHHMM(finSlot)}`;
-      heureSel.appendChild(opt);
-    }
-  }
-  if(heureSel.options.length <= 1){
-    const opt = document.createElement('option');
-    opt.disabled = true;
-    opt.textContent = "Aucun créneau libre ce jour-là, essaie une autre date";
-    heureSel.appendChild(opt);
+@media(min-width:900px){
+  .hero-photo{
+    display: none;
   }
 }
-
-/* ---------- Suppléments ---------- */
-function calculerSupplements(){
-  let total = 0;
-  const labels = [];
-  Object.entries(SUPPLEMENTS).forEach(([key, s])=>{
-    const cb = document.getElementById('supp-'+key);
-    if(cb && cb.checked){ total += s.montant; labels.push(s.label+` (+${s.montant}€)`); }
-  });
-  if(current && current.hasRepose){
-    const cbRepose = document.getElementById('repose-checkbox');
-    if(cbRepose && cbRepose.checked && SUPPLEMENT_REPOSE > 0){
-      total += SUPPLEMENT_REPOSE;
-      labels.push(`Avec repose (+${SUPPLEMENT_REPOSE}€)`);
-    }
-  }
-  return { total, labels };
-}
-
-/* ---------- Copier récapitulatif ---------- */
-function copyRecap(){
-  if(!current){ customAlert("Choisis d'abord une prestation."); return; }
-  const d = document.getElementById('date_rdv').value ? new Date(document.getElementById('date_rdv').value).toLocaleDateString('fr-FR') : '—';
-  const h = current.type === 'formation-fixe' ? `${current.heureDebut}–${current.heureFin}` : (document.getElementById('heure_rdv').value || '—');
-  const nom = document.getElementById('nom').value || '—';
-  const tel = document.getElementById('telephone').value || '—';
-  const insta = document.getElementById('insta').value || '—';
-  const { total: suppTotal, labels } = calculerSupplements();
-  const finalPrice = prixNumerique(current.price) + suppTotal;
-  const txt = `SWOO HAIR — Demande de rendez-vous
-Prestation : ${current.name} (${current.price}${suppTotal ? ' + '+suppTotal+'€ suppléments = '+finalPrice+'€' : ''})
-Date : ${d}
-Heure : ${h}
-Nom : ${nom}
-Téléphone : ${tel}
-Instagram : ${insta}
-Acompte réglé : ${current.dep}€ (capture jointe en DM)
-${labels.length ? 'Suppléments : '+labels.join(', ') : ''}`;
-  navigator.clipboard.writeText(txt).then(()=>{
-    customAlert("Récapitulatif copié — garde-le pour tes archives, ta réservation est déjà prise en compte une fois l'acompte réglé.");
-  }).catch(()=>customAlert(txt));
-}
-
-/* ---------- Message d'avertissement avant confirmation ---------- */
-function messageAvertissementPerruque(){
-  return `Important avant de confirmer ton rendez-vous perruque :
-
-• Ta perruque doit être propre et déposée avant le rendez-vous (voir délai précisé pour la prestation).
-• Un dépôt la veille du rendez-vous entraîne un supplément de ${SUPPLEMENTS.depotVeille.montant}€.
-• Une customisation demandée le jour même entraîne un supplément de ${SUPPLEMENTS.customJourMeme.montant}€.
-• Merci de joindre une photo de l'état actuel de ta perruque.
-
-En confirmant, tu acceptes ces conditions.`;
-}
-
-/* ---------- Envoi vers Supabase ---------- */
-async function submitReservation(){
-  const statusEl = document.getElementById('submit-status');
-  if(!current){ customAlert("Choisis d'abord une prestation dans les rubriques plus haut."); return; }
-  if(!supabaseClient){ customAlert("Connexion à la base non configurée."); return; }
-
-  if(current.type === 'devis'){
-    customAlert("Pour un devis, contacte-nous directement sur Instagram avec une photo/description de ta perruque.");
-    return;
-  }
-
-  const date = document.getElementById('date_rdv').value;
-  const heure = current.type === 'formation-fixe' ? current.heureDebut : document.getElementById('heure_rdv').value;
-  const nom = document.getElementById('nom').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const telephone = document.getElementById('telephone').value.trim();
-  const insta = document.getElementById('insta').value.trim();
-  const captureFile = document.getElementById('capture').files[0];
-  const photoEtatFile = document.getElementById('photo-etat') ? document.getElementById('photo-etat').files[0] : null;
-
-  if(!nom || !email || !date){
-    statusEl.textContent = "Merci de remplir au minimum : date, nom et e-mail.";
-    statusEl.style.color = "#b23b3b"; return;
-  }
-
-  // Re-vérification finale du jour (au cas où le planning aurait changé entretemps)
-  if(current.type !== 'devis'){
-    await chargerPlanning();
-    const horaires = getHorairesDuJour(date);
-    if(!horaires.ouvert){
-      statusEl.textContent = `Fermé le ${fmtDateFr(date)} — merci de choisir une autre date.`;
-      statusEl.style.color = "#b23b3b"; return;
-    }
-  }
-
-  if(current.type === 'slot' && !heure){
-    statusEl.textContent = "Merci de choisir un créneau horaire.";
-    statusEl.style.color = "#b23b3b"; return;
-  }
-  if(!captureFile){
-    statusEl.textContent = "Merci de joindre la capture de ton paiement PayPal avant d'envoyer ta demande.";
-    statusEl.style.color = "#b23b3b"; return;
-  }
-  if(current.needPhoto && !photoEtatFile){
-    statusEl.textContent = "Merci de joindre une photo de l'état actuel de ta perruque.";
-    statusEl.style.color = "#b23b3b"; return;
-  }
-
-  if(current.needPhoto || current.type === 'depot'){
-    const ok = await customConfirm(messageAvertissementPerruque());
-    if(!ok) return;
-  }
-
-  if(current.type === 'slot'){
-    statusEl.textContent = "Vérification du créneau…";
-    statusEl.style.color = "";
-    const { data: pris } = await supabaseClient
-      .from('reservations').select('heure_rdv,duree_minutes')
-      .eq('date_rdv', date).in('status', ['pending','confirmed']);
-    const debut = toMin(heure), fin = debut + current.duree;
-    const conflit = (pris||[]).some(r=>{
-      const od = toMin(r.heure_rdv), of_ = od + (r.duree_minutes||60);
-      return debut < of_ && fin > od;
-    });
-    if(conflit){
-      statusEl.textContent = "Ce créneau vient d'être pris par quelqu'un d'autre, merci d'en choisir un autre.";
-      statusEl.style.color = "#b23b3b";
-      refreshHeureAvailability();
-      return;
-    }
-  }
-
-  statusEl.textContent = "Envoi en cours…";
-  statusEl.style.color = "";
-
-  function nettoyerNomFichier(name){
-  return name
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // enlève les accents
-    .replace(/[^a-zA-Z0-9.\-_]/g, '_'); // remplace tout le reste (espaces, apostrophes...) par _
-}
-const captureName = `${Date.now()}_${nettoyerNomFichier(captureFile.name)}`;
-  const { error: uploadError } = await supabaseClient.storage.from('captures-paiement').upload(captureName, captureFile);
-  if(uploadError){
-    console.error(uploadError);
-    statusEl.textContent = "Erreur lors de l'envoi de la capture, réessaie.";
-    statusEl.style.color = "#b23b3b"; return;
-  }
-
- let photoEtatPath = null;
-if(photoEtatFile){
-  const fname = `etat_${Date.now()}_${nettoyerNomFichier(photoEtatFile.name)}`;
-  const { error: err2 } = await supabaseClient.storage.from('etat-perruque').upload(fname, photoEtatFile);
-  if(err2){
-    console.error("Erreur upload etat-perruque:", err2);
-    alert("Erreur upload photo état perruque : " + err2.message);
-  } else {
-    photoEtatPath = fname;
-  }
-}
-  const { total: suppTotal, labels: suppLabels } = calculerSupplements();
-  const reposeChoisie = current.hasRepose && document.getElementById('repose-checkbox')?.checked;
-
-  const noteComplete = [
-    current.note,
-    reposeChoisie ? `Avec repose (+${SUPPLEMENT_REPOSE}€)` : null,
-    suppLabels.length ? `Suppléments : ${suppLabels.join(', ')}` : null,
-    current.type === 'formation-fixe' ? `Formation ${current.jours}j — horaire fixe ${current.heureDebut}-${current.heureFin}` : null
-  ].filter(Boolean).join(' | ');
-
-  const { error } = await supabaseClient.from('reservations').insert({
-    prestation: current.name,
-    service_price: current.price,
-    acompte: current.dep + '€',
-    note: noteComplete,
-    date_rdv: date,
-    heure_rdv: current.type === 'depot' ? null : heure,
-    duree_minutes: current.duree || null,
-    nom, telephone, email,
-    instagram: insta,
-    capture_paiement: captureName,
-    photo_etat_perruque: photoEtatPath,
-    supplement_total: suppTotal
-  });
-
-  if(error){
-    console.error(error);
-    statusEl.textContent = "Une erreur est survenue, réessaie ou contacte-nous sur Instagram.";
-    statusEl.style.color = "#b23b3b"; return;
-  }
-
-  statusEl.textContent = "Demande envoyée ✓ — tu recevras un e-mail dès qu'elle sera acceptée ou refusée.";
-  statusEl.style.color = "#2f6b3f";
-  document.getElementById('booking-form').querySelectorAll('input,button,select').forEach(el=>el.disabled=true);
-}
-
-/* ---------- Avis ---------- */
-let AVIS = [
-  {nom:"Awa",note:5,svc:"Barrel motif",txt:"Le motif est ultra propre, tenue impeccable pendant trois semaines."},
-  {nom:"Kadia",note:5,svc:"Pose + custom",txt:"Rendu scalp hyper naturel, personne n'a deviné que c'était une perruque."},
-  {nom:"Sira",note:5,svc:"Bubble Ponytail",txt:"Douce avec mes cheveux et très professionnelle, je recommande."}
-];
-function starStr(n){ return "★★★★★".slice(0,n)+"☆☆☆☆☆".slice(0,5-n); }
-function renderAvis(){
-  document.getElementById('letters').innerHTML = AVIS.map(a=>`<div class="letter">
-      <div class="top"><span class="name">${a.nom}</span><span class="stars">${starStr(a.note)}</span></div>
-      <p class="txt">"${a.txt}"</p><span class="svc-tag">${a.svc}</span></div>`).join('');
-  const moy = AVIS.reduce((s,a)=>s+a.note,0)/AVIS.length;
-  document.getElementById('avg-note').textContent = moy.toFixed(1);
-  document.getElementById('avg-stars').textContent = starStr(Math.round(moy));
-  document.getElementById('avg-count').textContent = AVIS.length+" avis";
-}
-renderAvis();
-let noteChoisie = 0;
-const rateInput = document.getElementById('rate-input');
-rateInput.querySelectorAll('span').forEach(st=>{
-  st.addEventListener('click',()=>{
-    noteChoisie = +st.dataset.v;
-    rateInput.querySelectorAll('span').forEach(s=>s.classList.toggle('on', +s.dataset.v<=noteChoisie));
-  });
-});
-function postAvis(){
-  const nom = document.getElementById('avis-nom').value.trim();
-  const svc = document.getElementById('avis-svc').value.trim() || "Prestation";
-  const txt = document.getElementById('avis-txt').value.trim();
-  if(!nom || !noteChoisie || !txt){ customAlert("Merci d'indiquer ton prénom, une note et un commentaire."); return; }
-  AVIS.unshift({nom, note:noteChoisie, svc, txt});
-  renderAvis();
-  document.getElementById('avis-nom').value=''; document.getElementById('avis-svc').value=''; document.getElementById('avis-txt').value='';
-  noteChoisie=0; rateInput.querySelectorAll('span').forEach(s=>s.classList.remove('on'));
-  customAlert("Merci pour ton avis 🖤");
-}
-
-document.getElementById('footer-meta').textContent = "© SWOO HAIR RIS-ORANGIS " + new Date().getFullYear();
