@@ -379,7 +379,13 @@ async function refreshHeureAvailability(horairesDuJour){
   const { data: pris, error } = await supabaseClient
     .from('reservations').select('heure_rdv,duree_minutes')
     .eq('date_rdv', d).in('status', ['pending','confirmed']);
-  if(error){ console.error(error); return; }
+  if(error){
+    console.error("Erreur lors de la vérification des créneaux :", error);
+    const statusEl = getOrCreateDateStatusEl();
+    statusEl.textContent = "Impossible de vérifier les créneaux pour le moment. Réessaie dans quelques instants.";
+    statusEl.style.color = '#b23b3b';
+    return;
+  }
 
   const occupes = (pris||[]).filter(r=>r.heure_rdv).map(r=>{
     const debut = toMin(r.heure_rdv);
@@ -468,6 +474,7 @@ async function submitReservation(){
     customAlert("Pour un devis, contacte-nous directement sur Instagram avec une photo/description de ta perruque.");
     return;
   }
+  if(!document.getElementById('booking-form').reportValidity()) return;
 
   const date = document.getElementById('date_rdv').value;
   const heure = current.type === 'formation-fixe' ? current.heureDebut : document.getElementById('heure_rdv').value;
@@ -514,9 +521,15 @@ async function submitReservation(){
   if(current.type === 'slot'){
     statusEl.textContent = "Vérification du créneau…";
     statusEl.style.color = "";
-    const { data: pris } = await supabaseClient
+    const { data: pris, error: availabilityError } = await supabaseClient
       .from('reservations').select('heure_rdv,duree_minutes')
       .eq('date_rdv', date).in('status', ['pending','confirmed']);
+    if(availabilityError){
+      console.error("Erreur lors de la vérification du créneau avant réservation :", availabilityError);
+      statusEl.textContent = "Impossible de vérifier ce créneau pour le moment. Réessaie dans quelques instants.";
+      statusEl.style.color = "#b23b3b";
+      return;
+    }
     const debut = toMin(heure), fin = debut + current.duree;
     const conflit = (pris||[]).some(r=>{
       const od = toMin(r.heure_rdv), of_ = od + (r.duree_minutes||60);
@@ -552,7 +565,9 @@ if(photoEtatFile){
   const { error: err2 } = await supabaseClient.storage.from('etat-perruque').upload(fname, photoEtatFile);
   if(err2){
     console.error("Erreur upload etat-perruque:", err2);
-    alert("Erreur upload photo état perruque : " + err2.message);
+    statusEl.textContent = "Erreur lors de l'envoi de la photo, réessaie.";
+    statusEl.style.color = "#b23b3b";
+    return;
   } else {
     photoEtatPath = fname;
   }

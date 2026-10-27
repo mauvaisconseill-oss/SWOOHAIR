@@ -16,6 +16,8 @@
 
    Ce deuxième script crée les tables qui gèrent ton planning (horaires récurrents + dates bloquées), utilisées par l'onglet "Gérer mon planning" dans `admin.html`.
 
+   Si le projet Supabase existe déjà, relance aussi le contenu mis à jour de `supabase/schema.sql` : il ajoute les colonnes utilisées par le formulaire actuel et peut être réexécuté sans recréer les politiques.
+
 ## 3. Récupérer tes clés publiques et les coller dans le code
 
 1. Menu de gauche : **Settings** → **API**
