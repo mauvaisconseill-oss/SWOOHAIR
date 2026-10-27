@@ -237,21 +237,26 @@ form label.field{display:block;font-size:10.5px;letter-spacing:.1em;text-transfo
 .loyalty-head h2{font-size:28px;margin:14px 0 12px;line-height:1.15}
 .loyalty-head h2 em{font-style:italic}
 .loyalty-head .lede{font-size:13px;line-height:1.7;color:#4a4a4a;max-width:420px;margin-bottom:28px}
-.card-pair{display:flex;flex-direction:column;gap:18px;max-width:340px}
-.loy-card{aspect-ratio:1.586/1;border-radius:14px;padding:26px 24px;position:relative;overflow:hidden}
-.loy-card.front{background:var(--ink);color:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center}
+.card-pair{display:flex;flex-direction:column;gap:24px;max-width:360px}
+.loy-card{aspect-ratio:1.586/1;border-radius:16px;padding:32px 28px;position:relative;overflow:hidden;border:2px solid var(--ink);box-shadow:0 8px 24px rgba(17,17,17,0.12)}
+.loy-card.front{background:var(--cream);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center}
 .lc-brand-block{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:8px}
 .lc-brand{font-family:"Playfair Display",serif;font-size:34px;letter-spacing:.03em}
-.lc-rule{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.35em;color:var(--cream)}
-.lc-rule span{width:26px;height:1px;background:#6b6b68}
-.lc-tag{font-size:9.5px;letter-spacing:.16em;color:#a89e8c;margin-top:4px}
+.lc-rule{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.35em;color:var(--ink)}
+.lc-rule span{width:26px;height:1px;background:#999}
+.lc-tag{font-size:9.5px;letter-spacing:.16em;color:#333;margin-top:4px}
 .lc-qr{border-radius:6px;width:64px;height:64px;display:block;margin-top:10px}
-.loy-card.back{background:var(--ink);color:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.lc-back-label{font-size:11px;letter-spacing:.16em;padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid #444}
-.lc-stamps{display:flex;gap:10px;margin-bottom:22px}
-.lc-stamps span{width:34px;height:34px;border-radius:50%;border:1px solid #55534d;display:flex;align-items:center;justify-content:center}
-.lc-stamps span.reward{border-color:var(--cream);font-size:9px;letter-spacing:.02em;color:var(--cream)}
-.lc-back-foot p{font-size:8.5px;letter-spacing:.08em;color:#a89e8c;margin:3px 0}
+.loy-card.back{background:var(--cream);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0;overflow:hidden}
+.lc-back-img{width:100%;height:100%;object-fit:cover;display:block}
+.lc-back-label{font-size:11px;letter-spacing:.16em;padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid #ddd}
+.lc-levels{display:flex;flex-direction:column;gap:16px;margin-bottom:16px;width:100%}
+.lc-level{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid #eee}
+.lc-level:last-child{border-bottom:none}
+.lc-level-text{font-size:9px;letter-spacing:.06em;font-weight:500;color:#555}
+.lc-stamps{display:flex;gap:8px;margin-bottom:0;flex-wrap:wrap;justify-content:center}
+.lc-stamps span{width:34px;height:34px;border-radius:50%;border:1px solid #ccc;display:flex;align-items:center;justify-content:center}
+.lc-stamps span.reward{border-color:var(--ink);font-size:9px;letter-spacing:.02em;color:var(--ink)}
+.lc-back-foot p{font-size:8.5px;letter-spacing:.08em;color:#333;margin:3px 0}
 .loy-note{max-width:420px}
 @media(min-width:900px){
   .loyalty{padding:20px 6% 72px}
